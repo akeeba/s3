@@ -87,7 +87,7 @@ class Connector
 
 		// We need to post with Content-Length and Content-Type, MD5 is optional
 		$request->setHeader('Content-Type', $input->getType());
-		#$request->setHeader('Content-Length', $input->getSize());
+		$request->setHeader('Content-Length', $input->getSize());
 
 		if ($input->getMd5sum())
 		{
@@ -492,7 +492,6 @@ class Connector
 	{
 		$request = new Request('POST', $bucket, $uri, $this->configuration);
 		$request->setParameter('uploads', '');
-		$request->setInput($input);
 
 		// Custom request headers (Content-Type, Content-Disposition, Content-Encoding)
 		if (is_array($requestHeaders))
@@ -610,7 +609,7 @@ class Connector
 
 		if ($PartNumber == $totalParts)
 		{
-			$request->$input($totalSize - ($PartNumber - 1) * 5242880);
+			$input->setSize($totalSize - ($PartNumber - 1) * 5242880);
 		}
 
 		switch ($input->getInputType())

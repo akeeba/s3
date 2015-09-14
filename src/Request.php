@@ -457,8 +457,9 @@ class Request
 				}
 
 				$size = $this->input->getSize();
+				$type = $this->input->getInputType();
 
-				if ($this->input->getType() == Input::INPUT_DATA)
+				if ($type == Input::INPUT_DATA)
 				{
 					curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $this->verb);
 
@@ -469,7 +470,7 @@ class Request
 						curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
 					}
 
-					if ($size >= 0)
+					if ($size > 0)
 					{
 						curl_setopt($curl, CURLOPT_BUFFERSIZE, $size);
 					}
@@ -479,7 +480,7 @@ class Request
 					curl_setopt($curl, CURLOPT_PUT, true);
 					curl_setopt($curl, CURLOPT_INFILE, $this->input->getFp());
 
-					if ($size >= 0)
+					if ($size > 0)
 					{
 						curl_setopt($curl, CURLOPT_INFILESIZE, $size);
 					}
