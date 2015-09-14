@@ -23,6 +23,38 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Signature;
 class V4 extends Signature
 {
 	/**
+	 * Pre-process the request headers before we convert them to cURL-compatible format. Used by signature engines to
+	 * add custom headers, e.g. x-amz-content-sha256
+	 *
+	 * @param   array  $headers     The associative array of headers to process
+	 * @param   array  $amzHeaders  The associative array of amz-* headers to process
+	 *
+	 * @return  void
+	 */
+	public function preProcessHeaders(&$headers, &$amzHeaders)
+	{
+		// Do we already have an SHA-256 payload hash?
+		if (isset($amzHeaders['x-amz-content-sha256']))
+		{
+			return;
+		}
+
+		// Set the payload hash header
+		$input = $this->request->getInput();
+
+		if (is_object($input))
+		{
+			$requestPayloadHash = $input->getSha256();
+		}
+		else
+		{
+			$requestPayloadHash = hash('sha256', '', false);
+		}
+
+		$amzHeaders['x-amz-content-sha256'] = $requestPayloadHash;
+	}
+
+	/**
 	 * Returns the authorization header for the request
 	 *
 	 * @return  string
@@ -34,6 +66,7 @@ class V4 extends Signature
 		$headers        = $this->request->getHeaders();
 		$amzHeaders     = $this->request->getAmzHeaders();
 		$parameters     = $this->request->getParameters();
+		$bucket         = $this->request->getBucket();
 		$isPresignedURL = false;
 
 		// If the Expires query string parameter is set up we're pre-signing a download URL. The string to sign is a bit
@@ -53,6 +86,19 @@ class V4 extends Signature
 
 		// The canonical URI is the resource path
 		$canonicalURI = $resourcePath;
+		$bucketResource = '/' . $bucket;
+
+		if (strpos($canonicalURI, $bucketResource) === 0)
+		{
+			if ($canonicalURI === $bucketResource)
+			{
+				$canonicalURI = '/';
+			}
+			else
+			{
+				$canonicalURI = substr($canonicalURI, strlen($bucketResource));
+			}
+		}
 
 		// If the resource path has a query yank it and parse it into the parameters array
 		$questionMarkPos = strpos($canonicalURI, '?');
@@ -71,7 +117,22 @@ class V4 extends Signature
 
 		// The canonical query string is the string representation of $parameters, alpha sorted by key
 		ksort($parameters);
-		$canonicalQueryString = http_build_query($parameters, null, null, PHP_QUERY_RFC3986);
+
+		// We build the query the hard way because http_build_query in PHP 5.3 does NOT have the fourth parameter
+		// (encoding type), defaulting to RFC 1738 encoding whereas S3 expects RFC 3986 encoding
+		$canonicalQueryString = '';
+
+		if (!empty($parameters))
+		{
+			$temp = array();
+
+			foreach ($parameters as $k => $v)
+			{
+				$temp[] = $this->urlencode($k) . '=' . $this->urlencode($v);
+			}
+
+			$canonicalQueryString = implode('&', $temp);
+		}
 
 		// Calculate the canonical headers and the signed headers
 		$allHeaders = array_merge($headers, $amzHeaders);
@@ -87,7 +148,7 @@ class V4 extends Signature
 		$signedHeaders = implode(';', $signedHeadersArray);
 
 		// Get the payload hash
-		$requestPayloadHash = $this->request->getInput()->getSha256();
+		$requestPayloadHash = $amzHeaders['x-amz-content-sha256'];
 
 		// Calculate the canonical request
 		$canonicalRequest = $verb . "\n" .
@@ -153,5 +214,10 @@ class V4 extends Signature
 		$kSigning = hash_hmac('sha256', 'aws4_request', $kService, true);
 
 		return $kSigning;
+	}
+
+	private function urlencode($string)
+	{
+		return str_replace('+', '%20', urlencode($string));
 	}
 }

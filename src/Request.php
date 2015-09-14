@@ -414,6 +414,9 @@ class Request
 
 		curl_setopt($curl, CURLOPT_URL, $url);
 
+		$signer = Signature::getSignatureObject($this, $this->configuration->getSignatureMethod());
+		$signer->preProcessHeaders(&$this->headers, &$this->amzHeaders);
+
 		// Headers
 		$headers = array();
 
@@ -433,7 +436,6 @@ class Request
 			}
 		}
 
-		$signer = Signature::getSignatureObject($this, $this->configuration->getSignatureMethod());
 		$headers[] = 'Authorization: ' . $signer->getAuthorizationHeader();
 
 		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);

@@ -43,6 +43,17 @@ abstract class Signature
 	abstract public function getAuthorizationHeader();
 
 	/**
+	 * Pre-process the request headers before we convert them to cURL-compatible format. Used by signature engines to
+	 * add custom headers, e.g. x-amz-content-sha256
+	 *
+	 * @param   array  $headers     The associative array of headers to process
+	 * @param   array  $amzHeaders  The associative array of amz-* headers to process
+	 *
+	 * @return  void
+	 */
+	abstract public function preProcessHeaders(&$headers, &$amzHeaders);
+
+	/**
 	 * Get a signature object for the request
 	 *
 	 * @param   Request  $request  The request which needs signing
@@ -56,7 +67,4 @@ abstract class Signature
 
 		return new $className($request);
 	}
-
-	// verb, resource, parameters, headers, amz headers, payload, size
-	// If payload == file pointer use hash_init(), hash_update() and hash_final(). Use $size to see how much to read.
 }

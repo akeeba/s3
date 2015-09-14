@@ -328,8 +328,6 @@ class Response
 			{
 				$this->error->setResource((string)$this->body->Resource);
 			}
-
-			$this->body = null;
 		}
 	}
 }

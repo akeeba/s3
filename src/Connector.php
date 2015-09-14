@@ -419,7 +419,11 @@ class Connector
 	 */
 	public function listBuckets($detailed = false)
 	{
-		$request = new Request('GET', '', '', $this->configuration);
+		// When listing buckets with the AWSv4 signature method we MUST set the region to us-east-1. Don't ask...
+		$configuration = clone $this->configuration;
+		$configuration->setRegion('us-east-1');
+
+		$request = new Request('GET', '', '', $configuration);
 		$response = $request->getResponse();
 
 		if (!$response->error->isError() && (($response->code !== 200)))
