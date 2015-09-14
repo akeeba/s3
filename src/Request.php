@@ -73,32 +73,25 @@ class Request
 	);
 
 	/**
-	 * The Amazon S3 configuration object
+	 * Input data for the request
 	 *
-	 * @var Configuration
+	 * @var  Input
 	 */
-	private $configuration = null;
+	private $input = null;
 
 	/**
-	 * The file resource we are reading data from / writing data to
+	 * The file resource we are writing data to
 	 *
 	 * @var  bool|resource
 	 */
 	private $fp = false;
 
 	/**
-	 * Content length for PUT and POST operations, given in bytes
+	 * The Amazon S3 configuration object
 	 *
-	 * @var  int
+	 * @var Configuration
 	 */
-	private $size = 0;
-
-	/**
-	 * The data to use for PUT or POST operations. If you want to read directly from a file use $fp instead.
-	 *
-	 * @var  bool
-	 */
-	private $data = false;
+	private $configuration = null;
 
 	/**
 	 * The response object
@@ -151,6 +144,28 @@ class Request
 		$this->headers['Date'] = gmdate('D, d M Y H:i:s T');
 
 		$this->response = new Response();
+	}
+
+	/**
+	 * Get the input object
+	 *
+	 * @return  Input
+	 */
+	public function getInput()
+	{
+		return $this->input;
+	}
+
+	/**
+	 * Set the input object
+	 *
+	 * @param   Input  $input
+	 *
+	 * @return  void
+	 */
+	public function setInput(Input $input)
+	{
+		$this->input = $input;
 	}
 
 	/**
@@ -273,26 +288,6 @@ class Request
 	}
 
 	/**
-	 * Get the length, in bytes, of the data to send in a PUT/POST request
-	 *
-	 * @return  int
-	 */
-	public function getSize()
-	{
-		return $this->size;
-	}
-
-	/**
-	 * Get the data to send in a PUT/POST request. It will be null if the file pointer is set.
-	 *
-	 * @return  mixed
-	 */
-	public function &getData()
-	{
-		return $this->data;
-	}
-
-	/**
 	 * Set the data resource as a file pointer
 	 *
 	 * @param   resource  $fp
@@ -300,39 +295,6 @@ class Request
 	public function setFp($fp)
 	{
 		$this->fp = $fp;
-		$this->data = null;
-	}
-
-	/**
-	 * Set the size of the PUT/POST data, measured in bytes
-	 *
-	 * @param   int  $size
-	 */
-	public function setSize($size)
-	{
-		$this->size = (int) $size;
-	}
-
-	/**
-	 * Set the PUT/POST data.
-	 *
-	 * @param  string  $data
-	 */
-	public function setData($data)
-	{
-		$this->fp = null;
-		$this->data = $data;
-	}
-
-	/**
-	 * Set the PUT/POST data from a variable passed as reference.
-	 *
-	 * @param  string  $data
-	 */
-	public function assignData(&$data)
-	{
-		$this->fp = null;
-		$this->data = $data;
 	}
 
 	/**
@@ -380,8 +342,6 @@ class Request
 	 */
 	public function getResponse()
 	{
-		$query = '';
-
 		if (count($this->parameters))
 		{
 			$query = substr($this->uri, -1) !== '?' ? '?' : '&';
@@ -491,30 +451,41 @@ class Request
 
 			case 'PUT':
 			case 'POST':
-				if (!is_null($this->fp) && is_resource($this->fp))
+				if (!is_object($this->input) || !($this->input instanceof Input))
 				{
-					curl_setopt($curl, CURLOPT_PUT, true);
-					curl_setopt($curl, CURLOPT_INFILE, $this->fp);
-
-					if ($this->size >= 0)
-					{
-						curl_setopt($curl, CURLOPT_INFILESIZE, $this->size);
-					}
+					$this->input = new Input();
 				}
-				elseif (!is_null($this->data))
+
+				$size = $this->input->getSize();
+
+				if ($this->input->getType() == Input::INPUT_DATA)
 				{
 					curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $this->verb);
-					curl_setopt($curl, CURLOPT_POSTFIELDS, $this->data);
 
-					if ($this->size >= 0)
+					$data = $this->input->getDataReference();
+
+					if (strlen($data))
 					{
-						curl_setopt($curl, CURLOPT_BUFFERSIZE, $this->size);
+						curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+					}
+
+					if ($size >= 0)
+					{
+						curl_setopt($curl, CURLOPT_BUFFERSIZE, $size);
 					}
 				}
 				else
 				{
-					curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $this->verb);
+					curl_setopt($curl, CURLOPT_PUT, true);
+					curl_setopt($curl, CURLOPT_INFILE, $this->input->getFp());
+
+					if ($size >= 0)
+					{
+						curl_setopt($curl, CURLOPT_INFILESIZE, $size);
+					}
 				}
+
+
 				break;
 
 			case 'HEAD':

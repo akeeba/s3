@@ -87,7 +87,7 @@ class V4 extends Signature
 		$signedHeaders = implode(';', $signedHeadersArray);
 
 		// Get the payload hash
-		$requestPayloadHash = $this->getRequestPayloadHash();
+		$requestPayloadHash = $this->request->getInput()->getSha256();
 
 		// Calculate the canonical request
 		$canonicalRequest = $verb . "\n" .
@@ -135,92 +135,6 @@ class V4 extends Signature
 			'Signature=' . $signature;
 
 		return $authorization;
-	}
-
-	/**
-	 * Returns the SHA-256 hash of the request payload
-	 *
-	 * @return  string  Lowercase hexits of the hash
-	 */
-	private function getRequestPayloadHash()
-	{
-		// Get the data references from the request
-		$size = $this->request->getSize();
-		$data = $this->request->getData();
-		$fp   = $this->request->getFp();
-		$verb = $this->request->getVerb();
-
-		// Do I have raw data, file pointer or an empty payload
-		$type = 'data';
-
-		// Anything other than a PUT or POST request cannot have payload data
-		if (!in_array($verb, array('PUT', 'POST')))
-		{
-			$type = 'empty';
-		}
-		elseif (!empty($fp) && is_resource($fp) && ($size > 0))
-		{
-			$type = 'fp';
-		}
-		elseif (empty($data) || $size <= 0)
-		{
-			$type = 'empty';
-		}
-
-		// If it's an empty payload return a fast result
-		if ($type == 'empty')
-		{
-			$hash = hash('sha256', '', false);
-
-			return strtolower($hash);
-		}
-
-		// If it's data we can produce the hash right away
-		if ($type == 'data')
-		{
-			$hash = hash('sha256', $data, false);
-
-			return strtolower($hash);
-		}
-
-		// The remaining case is file pointer. We have to calculate a hash from the stream if it's seekable, otherwise
-		// we have to manipulate the request and transform it into a data request
-
-		$streamInfo = stream_get_meta_data($fp);
-		$seekable = $streamInfo['seekable'];
-		$newData = '';
-
-		$ctx = hash_init('sha256');
-		$pos = ftell($fp);
-		$done = 0;
-		$batch = min(1048576, $size);
-
-		while ($done < $size)
-		{
-			$toRead = min($batch, $done - $size);
-			$data = @fread($fp, $toRead);
-			hash_update($ctx, $data);
-
-			if (!$seekable)
-			{
-				$newData .= $data;
-			}
-
-			unset($data);
-		}
-
-		if ($seekable)
-		{
-			fseek($fp, $pos, SEEK_SET);
-		}
-		else
-		{
-			$this->request->setData($newData);
-		}
-
-		$hash = hash_final($ctx, false);
-
-		return strtolower($hash);
 	}
 
 	/**

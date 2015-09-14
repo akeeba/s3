@@ -148,6 +148,17 @@ class Input
 	}
 
 	/**
+	 * Destructor.
+	 */
+	function __destruct()
+	{
+		if (is_resource($this->fp))
+		{
+			@fclose($this->fp);
+		}
+	}
+
+	/**
 	 * Create an input object from raw data.
 	 *
 	 * Please bear in mind that the data is being duplicated in memory. Therefore you'll need at least 2xstrlen($data)
@@ -694,5 +705,4 @@ class Input
 				break;
 		}
 	}
-
 }

@@ -57,21 +57,7 @@ class Connector
 	public function putObject(Input $input, $bucket, $uri, $acl = Acl::ACL_PRIVATE, $metaHeaders = array(), $requestHeaders = array())
 	{
 		$request = new Request('PUT', $bucket, $uri, $this->configuration);
-
-		switch ($input->getInputType())
-		{
-			case Input::INPUT_DATA:
-				$data = $input->getDataReference();
-				$request->assignData($data);
-				break;
-
-			case Input::INPUT_FILE:
-			case Input::INPUT_RESOURCE:
-				$request->setFp($input->getFp());
-				break;
-		}
-
-		$request->setSize($input->getSize());
+		$request->setInput($input);
 
 		// Custom request headers (Content-Type, Content-Disposition, Content-Encoding)
 		if (count($requestHeaders))
@@ -101,6 +87,7 @@ class Connector
 
 		// We need to post with Content-Length and Content-Type, MD5 is optional
 		$request->setHeader('Content-Type', $input->getType());
+		#$request->setHeader('Content-Length', $input->getSize());
 
 		if ($input->getMd5sum())
 		{
@@ -196,6 +183,8 @@ class Connector
 		{
 			return $response->body;
 		}
+
+		return null;
 	}
 
 	/**
@@ -503,8 +492,7 @@ class Connector
 	{
 		$request = new Request('POST', $bucket, $uri, $this->configuration);
 		$request->setParameter('uploads', '');
-
-		$request->setSize($input->getSize());
+		$request->setInput($input);
 
 		// Custom request headers (Content-Type, Content-Disposition, Content-Encoding)
 		if (is_array($requestHeaders))
@@ -592,6 +580,7 @@ class Connector
 		$request = new Request('PUT', $bucket, $uri, $this->configuration);
 		$request->setParameter('partNumber', $PartNumber);
 		$request->setParameter('uploadId', $UploadID);
+		$request->setInput($input);
 
 		// Full data length
 		$totalSize = $input->getSize();
@@ -617,30 +606,25 @@ class Connector
 		}
 
 		// Calculate Content-Length
-		$request->setSize(5242880);
+		$input->setSize(5242880);
 
 		if ($PartNumber == $totalParts)
 		{
-			$request->setSize($totalSize - ($PartNumber - 1) * 5242880);
+			$request->$input($totalSize - ($PartNumber - 1) * 5242880);
 		}
 
 		switch ($input->getInputType())
 		{
 			case Input::INPUT_DATA:
-				$request->setData(substr($input->getData(), ($PartNumber - 1) * 5242880, $request->getSize()));
+				$input->setData(substr($input->getData(), ($PartNumber - 1) * 5242880, $input->getSize()));
 				break;
 
 			case Input::INPUT_FILE:
 			case Input::INPUT_RESOURCE:
 				$fp = $input->getFp();
 				fseek($fp, ($PartNumber - 1) * 5242880);
-
-				// I have to set the Request's file pointer, NOT the file structure's, as the request object is already
-				// initialized.
-				$request->setFp($fp);
 				break;
 		}
-
 
 		// Custom request headers (Content-Type, Content-Disposition, Content-Encoding)
 		if (is_array($requestHeaders))
@@ -658,7 +642,7 @@ class Connector
 			}
 		}
 
-		$request->setHeader('Content-Length', $request->getSize());
+		$request->setHeader('Content-Length', $input->getSize());
 
 		$response = $request->getResponse();
 
@@ -723,12 +707,11 @@ class Connector
 		$message .= "</CompleteMultipartUpload>";
 
 		// Get a request query
+		$reqInput = Input::createFromData($message);
+
 		$request = new Request('POST', $bucket, $uri, $this->configuration);
 		$request->setParameter('uploadId', $UploadID);
-
-		// Set content length and data
-		$request->setSize(strlen($message));
-		$request->setData($message);
+		$request->setInput($reqInput);
 
 		// Do post
 		$request->setHeader('Content-Type', 'application/xml'); // Even though the Amazon API doc doesn't mention it, it's required... :(
