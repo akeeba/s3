@@ -267,7 +267,7 @@ class Request
 	 *
 	 * @return  bool|resource
 	 */
-	public function getFp()
+	public function &getFp()
 	{
 		return $this->fp;
 	}
@@ -287,7 +287,7 @@ class Request
 	 *
 	 * @return  mixed
 	 */
-	public function getData()
+	public function &getData()
 	{
 		return $this->data;
 	}
