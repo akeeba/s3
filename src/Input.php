@@ -674,17 +674,26 @@ class Input
 	 */
 	private function calculateSha256()
 	{
-		switch ($this->getInputType())
+		$inputType = $this->getInputType();
+		switch ($inputType)
 		{
 			case self::INPUT_DATA:
 				return hash('sha256', $this->data, false);
 				break;
 
 			case self::INPUT_FILE:
-				return hash_file('sha256', $this->file, false);
-				break;
-
 			case self::INPUT_RESOURCE:
+				if ($inputType == self::INPUT_FILE)
+				{
+					$filesize = @filesize($this->file);
+					$fPos = @ftell($this->fp);
+
+					if (($filesize == $this->getSize()) && ($fPos === 0))
+					{
+						return hash_file('sha256', $this->file, false);
+					}
+				}
+
 				$ctx = hash_init('sha256');
 				$pos = ftell($this->fp);
 				$size = $this->getSize();
@@ -693,8 +702,9 @@ class Input
 
 				while ($done < $size)
 				{
-					$toRead = min($batch, $done - $size);
+					$toRead = min($batch, $size - $done);
 					$data = @fread($this->fp, $toRead);
+					$done += $toRead;
 					hash_update($ctx, $data);
 					unset($data);
 				}
