@@ -542,11 +542,17 @@ class Connector
 	 * @param   string  $bucket          Bucket name
 	 * @param   string  $uri             Object URI
 	 * @param   array   $requestHeaders  Array of request headers or content type as a string
+	 * @param   int     $chunkSize       Size of each upload chunk, in bytes. It cannot be less than 5242880 bytes (5Mb)
 	 *
 	 * @return  null|string  The ETag of the upload part of null if we have ran out of parts to upload
 	 */
-	public function uploadMultipart(Input $input, $bucket, $uri, $requestHeaders = array())
+	public function uploadMultipart(Input $input, $bucket, $uri, $requestHeaders = array(), $chunkSize  = 5242880)
 	{
+		if ($chunkSize < 5242880)
+		{
+			$chunkSize = 5242880;
+		}
+
 		// We need a valid UploadID and PartNumber
 		$UploadID = $input->getUploadID();
 		$PartNumber = $input->getPartNumber();
@@ -580,7 +586,7 @@ class Connector
 		$input->setType(null);
 
 		// Calculate part offset
-		$partOffset = 5242880 * ($PartNumber - 1);
+		$partOffset = $chunkSize * ($PartNumber - 1);
 
 		if ($partOffset > $totalSize)
 		{
@@ -589,31 +595,31 @@ class Connector
 		}
 
 		// How many parts are there?
-		$totalParts = floor($totalSize / 5242880);
+		$totalParts = floor($totalSize / $chunkSize);
 
-		if ($totalParts * 5242880 < $totalSize)
+		if ($totalParts * $chunkSize < $totalSize)
 		{
 			$totalParts++;
 		}
 
 		// Calculate Content-Length
-		$input->setSize(5242880);
+		$input->setSize($chunkSize);
 
 		if ($PartNumber == $totalParts)
 		{
-			$input->setSize($totalSize - ($PartNumber - 1) * 5242880);
+			$input->setSize($totalSize - ($PartNumber - 1) * $chunkSize);
 		}
 
 		switch ($input->getInputType())
 		{
 			case Input::INPUT_DATA:
-				$input->setData(substr($input->getData(), ($PartNumber - 1) * 5242880, $input->getSize()));
+				$input->setData(substr($input->getData(), ($PartNumber - 1) * $chunkSize, $input->getSize()));
 				break;
 
 			case Input::INPUT_FILE:
 			case Input::INPUT_RESOURCE:
 				$fp = $input->getFp();
-				fseek($fp, ($PartNumber - 1) * 5242880);
+				fseek($fp, ($PartNumber - 1) * $chunkSize);
 				break;
 		}
 
