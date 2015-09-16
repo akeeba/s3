@@ -336,6 +336,41 @@ class Request
 	}
 
 	/**
+	 * Get a pre-signed URL for the request. Typically used to pre-sign GET requests to objects, i.e. give shareable
+	 * pre-authorized URLs for downloading files from S3.
+	 *
+	 * @param   integer  $lifetime    Lifetime in seconds
+	 * @param   boolean  $hostBucket  Use the bucket name as the hostname?
+	 * @param   boolean  $https       Use HTTPS ($hostBucket should be false for SSL verification)?
+	 *
+	 * @return  string  The presigned URL
+	 */
+	public function getAuthenticatedURL($lifetime = null, $hostBucket = false, $https = false)
+	{
+		if (is_null($lifetime))
+		{
+			$lifetime = 10;
+		}
+
+		$expires = time() + $lifetime;
+
+		$this->setParameter('Expires', $expires);
+
+		$signer  = new Signature\V2($this);
+
+		$bucket    = $this->getBucket();
+		$uri       = $this->getResource();
+		$protocol  = $https ? 'https' : 'http';
+		$domain    = $hostBucket ? $bucket : $bucket . '.s3.amazonaws.com';
+		$accessKey = $this->configuration->getAccess();
+		$signature = $signer->getAuthorizationHeader();
+
+		return sprintf('%s://%s/%s?AWSAccessKeyId=%s&Expires=%u&Signature=%s',
+			$protocol, $domain, $uri, $accessKey, $expires,
+			urlencode($signature));
+	}
+
+	/**
 	 * Get the S3 response
 	 *
 	 * @return  Response

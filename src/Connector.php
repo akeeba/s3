@@ -218,33 +218,19 @@ class Connector
 	 * @param   string   $bucket      Bucket name
 	 * @param   string   $uri         Object URI
 	 * @param   integer  $lifetime    Lifetime in seconds
-	 * @param   boolean  $hostBucket  Use the bucket name as the hostname
-	 * @param   boolean  $https       Use HTTPS ($hostBucket should be false for SSL verification)
+	 * @param   boolean  $hostBucket  Use the bucket name as the hostname?
+	 * @param   boolean  $https       Use HTTPS ($hostBucket should be false for SSL verification)?
 	 *
 	 * @return  string
 	 */
 	public function getAuthenticatedURL($bucket, $uri, $lifetime = null, $hostBucket = false, $https = false)
 	{
-		if (is_null($lifetime))
-		{
-			$lifetime = 10;
-		}
-
-		$expires = time() + $lifetime;
+		// Get a request from the URI and bucket
 		$uri     = str_replace('%2F', '/', rawurlencode($uri));
-
 		$request = new Request('GET', $bucket, $uri, $this->configuration);
-		$signer  = new Signature\V2($request);
-		$request->setParameter('Expires', $expires);
 
-		$protocol  = $https ? 'https' : 'http';
-		$domain    = $hostBucket ? $bucket : $bucket . '.s3.amazonaws.com';
-		$accessKey = $this->configuration->getAccess();
-		$signature = $signer->getAuthorizationHeader();
-
-		return sprintf('%s://%s/%s?AWSAccessKeyId=%s&Expires=%u&Signature=%s',
-			$protocol, $domain, $uri, $accessKey, $expires,
-			urlencode($signature));
+		// Get the signed URI from the Request object
+		return $request->getAuthenticatedURL($lifetime, $hostBucket, $https);
 	}
 
 	/**
