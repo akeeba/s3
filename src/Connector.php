@@ -47,14 +47,13 @@ class Connector
 	 * @param   string  $bucket          Bucket name. If you're using v4 signatures it MUST be on the region defined.
 	 * @param   string  $uri             Object URI. Think of it as the absolute path of the file in the bucket.
 	 * @param   string  $acl             ACL constant, by default the object is private (visible only to the uploading user)
-	 * @param   array   $metaHeaders     Array of x-amz-meta-* headers
 	 * @param   array   $requestHeaders  Array of request headers
 	 *
 	 * @return  void
 	 *
 	 * @throws  CannotPutFile  If the upload is not possible
 	 */
-	public function putObject(Input $input, $bucket, $uri, $acl = Acl::ACL_PRIVATE, $metaHeaders = array(), $requestHeaders = array())
+	public function putObject(Input $input, $bucket, $uri, $acl = Acl::ACL_PRIVATE, $requestHeaders = array())
 	{
 		$request = new Request('PUT', $bucket, $uri, $this->configuration);
 		$request->setInput($input);
@@ -95,11 +94,6 @@ class Connector
 		}
 
 		$request->setAmzHeader('x-amz-acl', $acl);
-
-		foreach ($metaHeaders as $h => $v)
-		{
-			$request->setAmzHeader('x-amz-meta-' . $h, $v);
-		}
 
 		$response = $request->getResponse();
 
@@ -487,12 +481,11 @@ class Connector
 	 * @param   string  $bucket          Bucket name
 	 * @param   string  $uri             Object URI
 	 * @param   string  $acl             ACL constant
-	 * @param   array   $metaHeaders     Array of x-amz-meta-* headers
 	 * @param   array   $requestHeaders  Array of request headers
 	 *
 	 * @return  string  The upload session ID (UploadId)
 	 */
-	public function startMultipart(Input $input, $bucket, $uri, $acl = Acl::ACL_PRIVATE, $metaHeaders = array(), $requestHeaders = array())
+	public function startMultipart(Input $input, $bucket, $uri, $acl = Acl::ACL_PRIVATE, $requestHeaders = array())
 	{
 		$request = new Request('POST', $bucket, $uri, $this->configuration);
 		$request->setParameter('uploads', '');
@@ -514,11 +507,6 @@ class Connector
 		}
 
 		$request->setAmzHeader('x-amz-acl', $acl);
-
-		foreach ($metaHeaders as $h => $v)
-		{
-			$request->setAmzHeader('x-amz-meta-' . $h, $v);
-		}
 
 		if (isset($requestHeaders['Content-Type']))
 		{
