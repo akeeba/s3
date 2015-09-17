@@ -218,19 +218,40 @@ class Connector
 	 * @param   string   $bucket      Bucket name
 	 * @param   string   $uri         Object URI
 	 * @param   integer  $lifetime    Lifetime in seconds
-	 * @param   boolean  $hostBucket  Use the bucket name as the hostname?
 	 * @param   boolean  $https       Use HTTPS ($hostBucket should be false for SSL verification)?
 	 *
 	 * @return  string
 	 */
-	public function getAuthenticatedURL($bucket, $uri, $lifetime = null, $hostBucket = false, $https = false)
+	public function getAuthenticatedURL($bucket, $uri, $lifetime = null, $https = false)
 	{
 		// Get a request from the URI and bucket
+		$questionmarkPos = strpos($uri, '?');
+		$query = '';
+
+		if ($questionmarkPos !== false)
+		{
+			$query = substr($uri, $questionmarkPos + 1);
+			$uri = substr($uri, 0, $questionmarkPos);
+		}
+
 		$uri     = str_replace('%2F', '/', rawurlencode($uri));
 		$request = new Request('GET', $bucket, $uri, $this->configuration);
 
+		if ($query)
+		{
+			parse_str($query, $parameters);
+
+			if (count($parameters))
+			{
+				foreach ($parameters as $k => $v)
+				{
+					$request->setParameter($k, $v);
+				}
+			}
+		}
+
 		// Get the signed URI from the Request object
-		return $request->getAuthenticatedURL($lifetime, $hostBucket, $https);
+		return $request->getAuthenticatedURL($lifetime, $https);
 	}
 
 	/**

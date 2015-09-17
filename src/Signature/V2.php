@@ -37,6 +37,48 @@ class V2 extends Signature
 	}
 
 	/**
+	 * Get a pre-signed URL for the request. Typically used to pre-sign GET requests to objects, i.e. give shareable
+	 * pre-authorized URLs for downloading files from S3.
+	 *
+	 * @param   integer  $lifetime    Lifetime in seconds
+	 * @param   boolean  $https       Use HTTPS ($hostBucket should be false for SSL verification)?
+	 *
+	 * @return  string  The presigned URL
+	 */
+	public function getAuthenticatedURL($lifetime = null, $https = false)
+	{
+		// Set the Expires header
+		if (is_null($lifetime))
+		{
+			$lifetime = 10;
+		}
+
+		$expires = time() + $lifetime;
+		$this->request->setHeader('Expires', $expires);
+
+		$bucket    = $this->request->getBucket();
+		$uri       = $this->request->getResource();
+		$headers   = $this->request->getHeaders();
+		$accessKey = $this->request->getConfiguration()->getAccess();
+		$protocol  = $https ? 'https' : 'http';
+
+		$search = '/' . $bucket;
+
+		if (strpos($uri, $search) === 0)
+		{
+			$uri = substr($uri, strlen($search));
+		}
+
+		$signature = $this->getAuthorizationHeader();
+		$url = $protocol . '://' . $headers['Host'] . $uri;
+		$url .= (strpos($uri, '?') !== false) ? '&' : '?';
+		$url .= sprintf('AWSAccessKeyId=%s&Expires=%u&Signature=%s',
+			$accessKey, $expires, urlencode($signature));
+
+		return $url;
+	}
+
+	/**
 	 * Returns the authorization header for the request
 	 *
 	 * @return  string
@@ -72,9 +114,11 @@ class V2 extends Signature
 		// If the Expires query string parameter is set up we're pre-signing a download URL. The string to sign is a bit
 		// different in this case; it does not include the Date, it includes the Expires.
 		// See http://docs.aws.amazon.com/AmazonS3/latest/dev/RESTAuthentication.html#RESTAuthenticationQueryStringAuth
-		if (isset($parameters['Expires']) && ($verb == 'GET'))
+		if (isset($headers['Expires']) && ($verb == 'GET'))
 		{
-			$headers['Date'] = $parameters['Expires'];
+			$headers['Date'] = $headers['Expires'];
+			unset ($headers['Expires']);
+
 			$isPresignedURL  = true;
 		}
 

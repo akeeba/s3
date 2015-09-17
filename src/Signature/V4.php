@@ -55,6 +55,21 @@ class V4 extends Signature
 	}
 
 	/**
+	 * Get a pre-signed URL for the request. Typically used to pre-sign GET requests to objects, i.e. give shareable
+	 * pre-authorized URLs for downloading files from S3.
+	 *
+	 * @param   integer  $lifetime    Lifetime in seconds
+	 * @param   boolean  $https       Use HTTPS ($hostBucket should be false for SSL verification)?
+	 *
+	 * @return  string  The presigned URL
+	 */
+	public function getAuthenticatedURL($lifetime = null, $https = false)
+	{
+		// TODO Implement me
+		throw new \LogicException(__METHOD__ . ' is not implemented yet');
+	}
+
+	/**
 	 * Returns the authorization header for the request
 	 *
 	 * @return  string

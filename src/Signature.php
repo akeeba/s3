@@ -54,6 +54,17 @@ abstract class Signature
 	abstract public function preProcessHeaders(&$headers, &$amzHeaders);
 
 	/**
+	 * Get a pre-signed URL for the request. Typically used to pre-sign GET requests to objects, i.e. give shareable
+	 * pre-authorized URLs for downloading files from S3.
+	 *
+	 * @param   integer  $lifetime    Lifetime in seconds
+	 * @param   boolean  $https       Use HTTPS ($hostBucket should be false for SSL verification)?
+	 *
+	 * @return  string  The presigned URL
+	 */
+	abstract public function getAuthenticatedURL($lifetime = null, $https = false);
+
+	/**
 	 * Get a signature object for the request
 	 *
 	 * @param   Request  $request  The request which needs signing

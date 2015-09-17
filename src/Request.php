@@ -340,34 +340,17 @@ class Request
 	 * pre-authorized URLs for downloading files from S3.
 	 *
 	 * @param   integer  $lifetime    Lifetime in seconds
-	 * @param   boolean  $hostBucket  Use the bucket name as the hostname?
 	 * @param   boolean  $https       Use HTTPS ($hostBucket should be false for SSL verification)?
 	 *
 	 * @return  string  The presigned URL
 	 */
-	public function getAuthenticatedURL($lifetime = null, $hostBucket = false, $https = false)
+	public function getAuthenticatedURL($lifetime = null, $https = false)
 	{
-		if (is_null($lifetime))
-		{
-			$lifetime = 10;
-		}
+		$this->processParametersIntoResource();
+		$signer = Signature::getSignatureObject($this, 'v2');
+		//$signer = Signature::getSignatureObject($this, $this->configuration->getSignatureMethod());
 
-		$expires = time() + $lifetime;
-
-		$this->setParameter('Expires', $expires);
-
-		$signer  = new Signature\V2($this);
-
-		$bucket    = $this->getBucket();
-		$uri       = $this->getResource();
-		$protocol  = $https ? 'https' : 'http';
-		$domain    = $hostBucket ? $bucket : $bucket . '.s3.amazonaws.com';
-		$accessKey = $this->configuration->getAccess();
-		$signature = $signer->getAuthorizationHeader();
-
-		return sprintf('%s://%s/%s?AWSAccessKeyId=%s&Expires=%u&Signature=%s',
-			$protocol, $domain, $uri, $accessKey, $expires,
-			urlencode($signature));
+		return $signer->getAuthenticatedURL($lifetime = null, $https = false);
 	}
 
 	/**
@@ -377,40 +360,7 @@ class Request
 	 */
 	public function getResponse()
 	{
-		if (count($this->parameters))
-		{
-			$query = substr($this->uri, -1) !== '?' ? '?' : '&';
-
-			ksort($this->parameters);
-
-			foreach ($this->parameters as $var => $value)
-			{
-				if ($value == null || $value == '')
-				{
-					$query .= $var . '&';
-				}
-				else
-				{
-					// Parameters must be URL-encoded
-					$query .= $var . '=' . rawurlencode($value) . '&';
-				}
-			}
-
-			$query = substr($query, 0, -1);
-			$this->uri .= $query;
-
-			if (array_key_exists('acl', $this->parameters) ||
-			    array_key_exists('location', $this->parameters) ||
-			    array_key_exists('torrent', $this->parameters) ||
-			    array_key_exists('logging', $this->parameters) ||
-			    array_key_exists('uploads', $this->parameters) ||
-			    array_key_exists('uploadId', $this->parameters) ||
-			    array_key_exists('partNumber', $this->parameters)
-			)
-			{
-				$this->resource .= $query;
-			}
-		}
+		$this->processParametersIntoResource();
 
 		$schema = 'http://';
 
@@ -641,5 +591,48 @@ class Request
 		}
 
 		return $strlen;
+	}
+
+	/**
+	 * Processes $this->parameters as a query string into $this->resource
+	 *
+	 * @return  void
+	 */
+	private function processParametersIntoResource()
+	{
+		if (count($this->parameters))
+		{
+			$query = substr($this->uri, -1) !== '?' ? '?' : '&';
+
+			ksort($this->parameters);
+
+			foreach ($this->parameters as $var => $value)
+			{
+				if ($value == null || $value == '')
+				{
+					$query .= $var . '&';
+				}
+				else
+				{
+					// Parameters must be URL-encoded
+					$query .= $var . '=' . rawurlencode($value) . '&';
+				}
+			}
+
+			$query = substr($query, 0, -1);
+			$this->uri .= $query;
+
+			if (array_key_exists('acl', $this->parameters) ||
+				array_key_exists('location', $this->parameters) ||
+				array_key_exists('torrent', $this->parameters) ||
+				array_key_exists('logging', $this->parameters) ||
+				array_key_exists('uploads', $this->parameters) ||
+				array_key_exists('uploadId', $this->parameters) ||
+				array_key_exists('partNumber', $this->parameters)
+			)
+			{
+				$this->resource .= $query;
+			}
+		}
 	}
 }
