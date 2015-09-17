@@ -65,8 +65,36 @@ class V4 extends Signature
 	 */
 	public function getAuthenticatedURL($lifetime = null, $https = false)
 	{
-		// TODO Implement me
-		throw new \LogicException(__METHOD__ . ' is not implemented yet');
+		// Set the Expires header
+		if (is_null($lifetime))
+		{
+			$lifetime = 10;
+		}
+
+		$this->request->setHeader('Expires', (int) $lifetime);
+
+		$bucket           = $this->request->getBucket();
+		$uri              = $this->request->getResource();
+		$headers          = $this->request->getHeaders();
+		$protocol         = $https ? 'https' : 'http';
+		$serialisedParams = $this->getAuthorizationHeader();
+
+		$search = '/' . $bucket;
+
+		if (strpos($uri, $search) === 0)
+		{
+			$uri = substr($uri, strlen($search));
+		}
+
+		$queryParameters = unserialize($serialisedParams);
+
+		$query = http_build_query($queryParameters);
+
+		$url = $protocol . '://' . $headers['Host'] . $uri;
+		$url .= (strpos($uri, '?') !== false) ? '&' : '?';
+		$url .= $query;
+
+		return $url;
 	}
 
 	/**
@@ -84,12 +112,34 @@ class V4 extends Signature
 		$bucket         = $this->request->getBucket();
 		$isPresignedURL = false;
 
-		// If the Expires query string parameter is set up we're pre-signing a download URL. The string to sign is a bit
-		// different in this case; it does not include the Date, it includes the Expires.
-		// See http://docs.aws.amazon.com/AmazonS3/latest/dev/RESTAuthentication.html#RESTAuthenticationQueryStringAuth
-		if (isset($parameters['Expires']) && ($verb == 'GET'))
+		// Get the credentials scope
+		$signatureDate = new \DateTime($headers['Date']);
+
+		$credentialScope = $signatureDate->format('Ymd') . '/' .
+			$this->request->getConfiguration()->getRegion() . '/' .
+			's3/aws4_request';
+
+		/**
+		 * If the Expires header is set up we're pre-signing a download URL. The string to sign is a bit
+		 * different in this case and we have to pass certain headers as query string parameters.
+		 *
+		 * @see http://docs.aws.amazon.com/general/latest/gr/sigv4-create-string-to-sign.html
+		 */
+		if (isset($headers['Expires']) && ($verb == 'GET'))
 		{
-			$headers['Date'] = $parameters['Expires'];
+			$gmtDate = clone $signatureDate;
+			$gmtDate->setTimezone(new \DateTimeZone('GMT'));
+
+			$parameters['X-Amz-Algorithm'] = "AWS4-HMAC-SHA256";
+			$parameters['X-Amz-Credential'] = $this->request->getConfiguration()->getAccess() . '/' . $credentialScope;
+			$parameters['X-Amz-Date'] = $gmtDate->format('Ymd\THis\Z');
+			$parameters['X-Amz-Expires'] = sprintf('%u', $headers['Expires']);
+
+			unset($headers['Expires']);
+			unset($headers['Date']);
+			unset($headers['Content-MD5']);
+			unset($headers['Content-Type']);
+
 			$isPresignedURL  = true;
 		}
 
@@ -98,6 +148,30 @@ class V4 extends Signature
 
 		$canonicalHeaders = "";
 		$signedHeadersArray = array();
+
+		// Calculate the canonical headers and the signed headers
+		if ($isPresignedURL)
+		{
+			// Presigned URLs use UNSIGNED-PAYLOAD instead
+			unset($amzHeaders['x-amz-content-sha256']);
+		}
+
+		$allHeaders = array_merge($headers, $amzHeaders);
+		ksort($allHeaders);
+
+		foreach ($allHeaders as $k => $v)
+		{
+			$lowercaseHeaderName = strtolower($k);
+			$canonicalHeaders .= $lowercaseHeaderName . ':' . trim($v) . "\n";
+			$signedHeadersArray[] = $lowercaseHeaderName;
+		}
+
+		$signedHeaders = implode(';', $signedHeadersArray);
+
+		if ($isPresignedURL)
+		{
+			$parameters['X-Amz-SignedHeaders'] = $signedHeaders;
+		}
 
 		// The canonical URI is the resource path
 		$canonicalURI = $resourcePath;
@@ -149,21 +223,13 @@ class V4 extends Signature
 			$canonicalQueryString = implode('&', $temp);
 		}
 
-		// Calculate the canonical headers and the signed headers
-		$allHeaders = array_merge($headers, $amzHeaders);
-		ksort($allHeaders);
-
-		foreach ($allHeaders as $k => $v)
-		{
-			$lowercaseHeaderName = strtolower($k);
-			$canonicalHeaders .= $lowercaseHeaderName . ':' . trim($v) . "\n";
-			$signedHeadersArray[] = $lowercaseHeaderName;
-		}
-
-		$signedHeaders = implode(';', $signedHeadersArray);
-
 		// Get the payload hash
-		$requestPayloadHash = $amzHeaders['x-amz-content-sha256'];
+		$requestPayloadHash = 'UNSIGNED-PAYLOAD';
+
+		if (isset($amzHeaders['x-amz-content-sha256']))
+		{
+			$requestPayloadHash = $amzHeaders['x-amz-content-sha256'];
+		}
 
 		// Calculate the canonical request
 		$canonicalRequest = $verb . "\n" .
@@ -178,16 +244,18 @@ class V4 extends Signature
 		// ========== Step 2: Create a string to sign ==========
 		// See http://docs.aws.amazon.com/general/latest/gr/sigv4-create-string-to-sign.html
 
-		$signatureDate = new \DateTime($headers['Date']);
-
-		$credentialScope = $signatureDate->format('Ymd') . '/' .
-			$this->request->getConfiguration()->getRegion() . '/' .
-			's3/aws4_request';
-
 		$stringToSign = "AWS4-HMAC-SHA256\n" .
 			$headers['Date'] . "\n" .
 			$credentialScope . "\n" .
 			$hashedCanonicalRequest;
+
+		if ($isPresignedURL)
+		{
+			$stringToSign = "AWS4-HMAC-SHA256\n" .
+				$parameters['X-Amz-Date'] . "\n" .
+				$credentialScope . "\n" .
+				$hashedCanonicalRequest;
+		}
 
 		// ========== Step 3: Calculate the signature ==========
 		// See http://docs.aws.amazon.com/general/latest/gr/sigv4-calculate-signature.html
@@ -198,17 +266,19 @@ class V4 extends Signature
 		// ========== Step 4: Add the signing information to the Request ==========
 		// See http://docs.aws.amazon.com/general/latest/gr/sigv4-add-signature-to-request.html
 
-		// For presigned URLs we only return the Base64-encoded signature without the AWS format specifier and the
-		// public access key.
-		if ($isPresignedURL)
-		{
-			// TODO See http://docs.aws.amazon.com/general/latest/gr/sigv4-create-string-to-sign.html
-		}
-
 		$authorization = 'AWS4-HMAC-SHA256 Credential=' .
 			$this->request->getConfiguration()->getAccess() . '/' . $credentialScope . ', ' .
 			'SignedHeaders=' . $signedHeaders . ', ' .
 			'Signature=' . $signature;
+
+		// For presigned URLs we only return the Base64-encoded signature without the AWS format specifier and the
+		// public access key.
+		if ($isPresignedURL)
+		{
+			$parameters['X-Amz-Signature'] = $signature;
+
+			return serialize($parameters);
+		}
 
 		return $authorization;
 	}
