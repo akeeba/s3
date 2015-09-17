@@ -61,6 +61,7 @@ class V2 extends Signature
 		$headers   = $this->request->getHeaders();
 		$accessKey = $this->request->getConfiguration()->getAccess();
 		$protocol  = $https ? 'https' : 'http';
+		$signature = $this->getAuthorizationHeader();
 
 		$search = '/' . $bucket;
 
@@ -69,11 +70,17 @@ class V2 extends Signature
 			$uri = substr($uri, strlen($search));
 		}
 
-		$signature = $this->getAuthorizationHeader();
+		$queryParameters = array_merge($this->request->getParameters(), array(
+			'AWSAccessKeyId'	=> $accessKey,
+			'Expires'			=> sprintf('%u', $expires),
+			'Signature'			=> $signature,
+		));
+
+		$query = http_build_query($queryParameters);
+
 		$url = $protocol . '://' . $headers['Host'] . $uri;
 		$url .= (strpos($uri, '?') !== false) ? '&' : '?';
-		$url .= sprintf('AWSAccessKeyId=%s&Expires=%u&Signature=%s',
-			$accessKey, $expires, urlencode($signature));
+		$url .= $query;
 
 		return $url;
 	}

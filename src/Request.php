@@ -347,8 +347,7 @@ class Request
 	public function getAuthenticatedURL($lifetime = null, $https = false)
 	{
 		$this->processParametersIntoResource();
-		$signer = Signature::getSignatureObject($this, 'v2');
-		//$signer = Signature::getSignatureObject($this, $this->configuration->getSignatureMethod());
+		$signer = Signature::getSignatureObject($this, $this->configuration->getSignatureMethod());
 
 		return $signer->getAuthenticatedURL($lifetime = null, $https = false);
 	}
