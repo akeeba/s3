@@ -65,7 +65,7 @@ class Connector
 			{
 				if (strtolower(substr($h, 0, 6)) == 'x-amz-')
 				{
-					$request->setAmzHeader($h, $v);
+					$request->setAmzHeader(strtolower($h), $v);
 				}
 				else
 				{
