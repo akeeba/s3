@@ -399,7 +399,7 @@ class Request
 		curl_setopt($curl, CURLOPT_URL, $url);
 
 		$signer = Signature::getSignatureObject($this, $this->configuration->getSignatureMethod());
-		$signer->preProcessHeaders(&$this->headers, &$this->amzHeaders);
+		$signer->preProcessHeaders($this->headers, $this->amzHeaders);
 
 		// Headers
 		$headers = array();
@@ -425,8 +425,8 @@ class Request
 		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($curl, CURLOPT_HEADER, false);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, false);
-		curl_setopt($curl, CURLOPT_WRITEFUNCTION, array(&$this, '__responseWriteCallback'));
-		curl_setopt($curl, CURLOPT_HEADERFUNCTION, array(&$this, '__responseHeaderCallback'));
+		curl_setopt($curl, CURLOPT_WRITEFUNCTION, array($this, '__responseWriteCallback'));
+		curl_setopt($curl, CURLOPT_HEADERFUNCTION, array($this, '__responseHeaderCallback'));
 		curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
 
 		// Request types
