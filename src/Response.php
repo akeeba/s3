@@ -153,6 +153,11 @@ class Response
 			return;
 		}
 
+		if (!isset($this->headers['type']))
+		{
+			$this->headers['type'] = 'text/plain';
+		}
+
 		if (is_string($this->body) &&
 			(($this->headers['type'] == 'application/xml') || (substr($this->body, 0, 5) == '<?xml'))
 		)
@@ -316,7 +321,7 @@ class Response
 	protected function parseBody()
 	{
 		if (!in_array($this->code, array(200, 204)) &&
-		    isset($this->body->Code, $this->body->Message)
+			isset($this->body->Code, $this->body->Message)
 		)
 		{
 			$this->error = new Error(
