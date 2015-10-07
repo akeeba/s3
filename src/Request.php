@@ -644,6 +644,12 @@ class Request
 	 * always use an HTTPS connection, even with buckets containing dots in their names, without SSL certificate host
 	 * name validation issues.
 	 *
+	 * Please note that this requires the pathStyle flag to be set in Configuration because Amazon RECOMMENDS using the
+	 * virtual-hosted style request where applicable. See http://docs.aws.amazon.com/AmazonS3/latest/API/APIRest.html
+	 * Quoting this documentation:
+	 * "Although the path-style is still supported for legacy applications, we recommend using the virtual-hosted style
+	 * where applicable."
+	 *
 	 * @param   Configuration  $configuration
 	 * @param   string         $bucket
 	 *
@@ -673,7 +679,7 @@ class Request
 		 */
 		if ($endpoint != 's3.amazonaws.com')
 		{
-			return $endpoint;
+			return $hostname;
 		}
 
 		/**
@@ -681,6 +687,14 @@ class Request
 		 * bucket called foobar needs to be accessed through the hostname foobar.s3.amazonaws.com
 		 */
 		if ($configuration->getSignatureMethod() != 'v4')
+		{
+			return $hostname;
+		}
+
+		/**
+		 * If we are not asked to use legacy path style access return the virtual hosting style hostname
+		 */
+		if (!$configuration->getUseLegacyPathStyle())
 		{
 			return $hostname;
 		}

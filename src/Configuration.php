@@ -54,6 +54,14 @@ class Configuration
 	protected $useSSL = true;
 
 	/**
+	 * Should I use legacy, path-style access to the bucket? When it's turned off (default) we use virtual hosting style
+	 * paths which are RECOMMENDED BY AMAZON per http://docs.aws.amazon.com/AmazonS3/latest/API/APIRest.html
+	 *
+	 * @var  bool
+	 */
+	protected $useLegacyPathStyle = false;
+
+	/**
 	 * Amazon S3 endpoint. You can use a custom endpoint with v2 signatures to access third party services which offer
 	 * S3 compatibility, e.g. OwnCloud, Google Storage etc.
 	 *
@@ -229,5 +237,25 @@ class Configuration
 		}
 
 		$this->endpoint = $endpoint;
+	}
+
+	/**
+	 * Should I use legacy, path-style access to the bucket?
+	 *
+	 * @return  boolean
+	 */
+	public function getUseLegacyPathStyle()
+	{
+		return $this->useLegacyPathStyle;
+	}
+
+	/**
+	 * Set the flag for using legacy, path-style access to the bucket
+	 *
+	 * @param  boolean  $useLegacyPathStyle
+	 */
+	public function setUseLegacyPathStyle($useLegacyPathStyle)
+	{
+		$this->useLegacyPathStyle = $useLegacyPathStyle;
 	}
 }

@@ -176,7 +176,7 @@ class V4 extends Signature
 		// The canonical URI is the resource path
 		$canonicalURI     = $resourcePath;
 		$bucketResource   = '/' . $bucket;
-		$regionalHostname = $headers['Host'] != 's3.amazonaws.com';
+		$regionalHostname = ($headers['Host'] != 's3.amazonaws.com') && ($headers['Host'] != $bucket . '.s3.amazonaws.com');
 
 		if (!$regionalHostname && (strpos($canonicalURI, $bucketResource) === 0))
 		{
