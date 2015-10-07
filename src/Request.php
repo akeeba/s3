@@ -132,13 +132,17 @@ class Request
 
 		$defaultHost = $configuration->getEndpoint();
 
-		$this->headers['Host'] = $defaultHost;
+		$this->headers['Host'] = $this->getHostName($configuration, $this->bucket);
 		$this->resource        = $this->uri;
 
 		if ($this->bucket !== '')
 		{
-			$this->headers['Host'] = $this->bucket . '.' . $defaultHost;
-			$this->resource        = '/' . $this->bucket . $this->uri;
+			$this->resource = '/' . $this->bucket . $this->uri;
+
+			if ($this->headers['Host'] != $this->bucket . '.' . $defaultHost)
+			{
+				$this->uri = $this->resource;
+			}
 		}
 
 		$this->headers['Date'] = gmdate('D, d M Y H:i:s T');
@@ -633,5 +637,68 @@ class Request
 				$this->resource .= $query;
 			}
 		}
+	}
+
+	/**
+	 * Get the region-specific hostname for an operation given a configuration and a bucket name. This ensures we can
+	 * always use an HTTPS connection, even with buckets containing dots in their names, without SSL certificate host
+	 * name validation issues.
+	 *
+	 * @param   Configuration  $configuration
+	 * @param   string         $bucket
+	 *
+	 * @return  string
+	 */
+	private function getHostName(Configuration $configuration, $bucket)
+	{
+		//
+		// http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
+		$endpoint = $configuration->getEndpoint();
+		$hostname = $bucket . '.' . $endpoint;
+
+		/**
+		 * If there is no bucket we use the default endpoint, whatever it is. For Amazon S3 this format is only used
+		 * when we are making account-level, cross-region requests, e.g. list all buckets. For S3-compatible APIs it
+		 * depends on the API, but generally it's just for listing available buckets.
+		 */
+		if (empty($bucket))
+		{
+			return $endpoint;
+		}
+
+		/**
+		 * If a custom endpoint has been specified we have to use the v2 signature API and its old-style hostnames, i.e.
+		 * "virtual hosting". For example with an endpoint s3.example.com and bucket foobar the hostname would be
+		 * foobar.s3.example.com
+		 */
+		if ($endpoint != 's3.amazonaws.com')
+		{
+			return $endpoint;
+		}
+
+		/**
+		 * If we are using Amazon S3 with v2 signatures we have to use virual hosting (old-style) hostnames. So, a
+		 * bucket called foobar needs to be accessed through the hostname foobar.s3.amazonaws.com
+		 */
+		if ($configuration->getSignatureMethod() != 'v4')
+		{
+			return $endpoint;
+		}
+
+		/**
+		 * When using the Amazon S3 with the v4 signature API we have to use a different hostname per region. The
+		 * mapping can be found in http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region and boils down to
+		 * the replacing s3.amazonaws.com with s3-REGION.amazonaws.com  The only exception is the old, very first S3
+		 * region us-east-1 whose regional hostname is s3-external-1.amazonaws.com just to make our life harder...
+		 */
+
+		$region = $configuration->getRegion();
+
+		if ($region == 'us-east-1')
+		{
+			$region = 'external-1';
+		}
+
+		return str_replace('s3', 's3-' . $region, $endpoint);
 	}
 }
