@@ -112,6 +112,14 @@ class V4 extends Signature
 		$bucket         = $this->request->getBucket();
 		$isPresignedURL = false;
 
+		// See the Connector class for the explanation behind this ugly workaround
+		$amazonIsBraindead = isset($requestHeaders['workaround-braindead-error-from-amazon']);
+
+		if ($amazonIsBraindead)
+		{
+			unset ($requestHeaders['workaround-braindead-error-from-amazon']);
+		}
+
 		// Get the credentials scope
 		$signatureDate = new \DateTime($headers['Date']);
 
@@ -162,6 +170,17 @@ class V4 extends Signature
 		foreach ($allHeaders as $k => $v)
 		{
 			$lowercaseHeaderName = strtolower($k);
+
+			if ($amazonIsBraindead && ($lowercaseHeaderName == 'content-length'))
+			{
+				// No, it doesn't look stupid. It is FUCKING STUPID. But somehow Amazon requires me to do it and only
+				// on some servers. Yeah, I had the same "WHAT THE ACTUAL FUCK?!" reaction myself, thank you very much.
+				// I wasted an entire day on this shit. And then you wonder why I write my own connector libraries
+				// instead of pulling something through Composer, huh? Because the official library doesn't deal with
+				// this stupid shit, that's why.
+				$v = "$v,$v";
+			}
+
 			$canonicalHeaders .= $lowercaseHeaderName . ':' . trim($v) . "\n";
 			$signedHeadersArray[] = $lowercaseHeaderName;
 		}

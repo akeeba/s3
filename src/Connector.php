@@ -662,6 +662,37 @@ class Connector
 				);
 			}
 
+			if (is_object($response->body) && ($response->body instanceof \SimpleXMLElement) && (strpos($input->getSize(), ',') === false))
+			{
+				// For some moronic reason, trying to multipart upload files on some hosts comes back with a stupid
+				// error from Amazon that we need to set Content-Length:5242880,5242880 instead of
+				// Content-Length:5242880 which is AGAINST Amazon's documentation. In this case we pass the header
+				// 'workaround-braindead-error-from-amazon' and retry. Screw you too, Amazon, you bloody idiots!
+				if (isset($response->body->CanonicalRequest))
+				{
+					$amazonsCanonicalRequest = (string)$response->body->CanonicalRequest;
+					$lines = explode("\n", $amazonsCanonicalRequest);
+
+					foreach ($lines as $line)
+					{
+						if (substr($line, 0, 15) != 'content-length:')
+						{
+							continue;
+						}
+
+						list($junk, $stupidAmazonDefinedContentLength) = explode(":", $line);
+
+						if (strpos($stupidAmazonDefinedContentLength, ',') !== false)
+						{
+							$requestHeaders['workaround-braindead-error-from-amazon'] = 'you can\'t fix stupid';
+
+							return $this->uploadMultipart($input, $bucket, $uri, $requestHeaders, $chunkSize);
+						}
+					}
+				}
+
+			}
+
 			throw new CannotPutFile(
 				sprintf(__METHOD__ . "(): [%s] %s\n\nDebug info:\n%s", $response->error->getCode(), $response->error->getMessage(), print_r($response->body, true))
 			);
