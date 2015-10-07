@@ -684,9 +684,12 @@ class Connector
 
 						if (strpos($stupidAmazonDefinedContentLength, ',') !== false)
 						{
-							$requestHeaders['workaround-braindead-error-from-amazon'] = 'you can\'t fix stupid';
+							if (!isset($requestHeaders['workaround-braindead-error-from-amazon']))
+							{
+								$requestHeaders['workaround-braindead-error-from-amazon'] = 'you can\'t fix stupid';
 
-							return $this->uploadMultipart($input, $bucket, $uri, $requestHeaders, $chunkSize);
+								return $this->uploadMultipart($input, $bucket, $uri, $requestHeaders, $chunkSize);
+							}
 						}
 					}
 				}

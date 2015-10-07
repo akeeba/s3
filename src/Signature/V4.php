@@ -113,11 +113,11 @@ class V4 extends Signature
 		$isPresignedURL = false;
 
 		// See the Connector class for the explanation behind this ugly workaround
-		$amazonIsBraindead = isset($requestHeaders['workaround-braindead-error-from-amazon']);
+		$amazonIsBraindead = isset($headers['workaround-braindead-error-from-amazon']);
 
 		if ($amazonIsBraindead)
 		{
-			unset ($requestHeaders['workaround-braindead-error-from-amazon']);
+			unset ($headers['workaround-braindead-error-from-amazon']);
 		}
 
 		// Get the credentials scope
