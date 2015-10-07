@@ -395,8 +395,22 @@ class Request
 				}
 			}
 
-			// Verify the host name in the certificate and the certificate itself
-			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
+			// Verify the host name in the certificate and the certificate itself. However, if your bucket contains dots
+			// we have to turn off host verification. Sorry, that's a limitation of Amazon S3. Since they recommend
+			// always using virtual hosting style hostnames while their SSL certificate is set up to only allow
+			// subdomains (bucket names) without dots the direct implication is that if you want to use SSL you MUST NOT
+			// use dots in your bucket name. Of course this contradicts another part of their documentation which
+			// suggests using bucket names with dots (same as your domain name) but YOU CAN'T MAKE SENSE OF THEIR BLOODY
+			// DOCS, CAN YOU? For what is worth their own SDK uses path-style access which they tell everyone else to
+			// not use.
+			//
+			// TL;DR: Amazon is a bunch of jerks.
+			$isAmazonS3 = substr($this->headers['Host'], -14) == '.amazonaws.com';
+			$tooManyDots = substr_count($this->headers['Host'], '.') > 3;
+
+			$verifyHost = ($isAmazonS3 && $tooManyDots) ? 0 : 2;
+
+			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, $verifyHost);
 			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
 		}
 
