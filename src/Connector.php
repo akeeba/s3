@@ -744,4 +744,13 @@ class Connector
 		}
 	}
 
+	/**
+	 * Returns the configuration object
+	 *
+	 * @return  Configuration
+	 */
+	public function getConfiguration()
+	{
+		return $this->configuration;
+	}
 }
