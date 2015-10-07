@@ -682,7 +682,7 @@ class Request
 		 */
 		if ($configuration->getSignatureMethod() != 'v4')
 		{
-			return $endpoint;
+			return $hostname;
 		}
 
 		/**
