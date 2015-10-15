@@ -612,12 +612,20 @@ class Connector
 		}
 
 		// Calculate Content-Length
-		$input->setSize($chunkSize);
+		$size = $chunkSize;
 
-		if ($PartNumber == $totalParts)
+		if ($PartNumber >= $totalParts)
 		{
-			$input->setSize($totalSize - ($PartNumber - 1) * $chunkSize);
+			$size = $totalSize - ($PartNumber - 1) * $chunkSize;
 		}
+
+		if ($size <= 0)
+		{
+			// This is to signify that we ran out of parts ;)
+			return null;
+		}
+
+		$input->setSize($size);
 
 		switch ($input->getInputType())
 		{
