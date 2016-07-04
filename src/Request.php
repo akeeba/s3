@@ -405,7 +405,8 @@ class Request
 			// not use.
 			//
 			// TL;DR: Amazon is a bunch of jerks.
-			$isAmazonS3 = substr($this->headers['Host'], -14) == '.amazonaws.com';
+			$isAmazonS3 = (substr($this->headers['Host'], -14) == '.amazonaws.com') ||
+				substr($this->headers['Host'], -16) == 'amazonaws.com.cn';
 			$tooManyDots = substr_count($this->headers['Host'], '.') > 3;
 
 			$verifyHost = ($isAmazonS3 && $tooManyDots) ? 0 : 2;
@@ -691,7 +692,7 @@ class Request
 		 * "virtual hosting". For example with an endpoint s3.example.com and bucket foobar the hostname would be
 		 * foobar.s3.example.com
 		 */
-		if ($endpoint != 's3.amazonaws.com')
+		if (!in_array($endpoint, array('s3.amazonaws.com', 'amazonaws.com.cn')))
 		{
 			return $hostname;
 		}
@@ -718,6 +719,8 @@ class Request
 		 * mapping can be found in http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region and boils down to
 		 * the replacing s3.amazonaws.com with s3-REGION.amazonaws.com  The only exception is the old, very first S3
 		 * region us-east-1 whose regional hostname is s3-external-1.amazonaws.com just to make our life harder...
+		 *
+		 * Also China (cn-north-1) where it is s3.cn-north-1.amazonaws.com.cn
 		 */
 
 		$region = $configuration->getRegion();
@@ -725,6 +728,10 @@ class Request
 		if ($region == 'us-east-1')
 		{
 			$region = 'external-1';
+		}
+		elseif ($region == 'cn-north-1')
+		{
+			return 's3' . $region . $endpoint;
 		}
 
 		return str_replace('s3', 's3-' . $region, $endpoint);
