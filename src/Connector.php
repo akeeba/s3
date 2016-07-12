@@ -736,6 +736,10 @@ class Connector
 							{
 								$requestHeaders['workaround-braindead-error-from-amazon'] = 'you can\'t fix stupid';
 
+								// This is required to reset the input size to its default value. If you don't do that
+								// only one part will ever be uploaded. Oops!
+								$input->setSize(-1);
+
 								return $this->uploadMultipart($input, $bucket, $uri, $requestHeaders, $chunkSize);
 							}
 						}
