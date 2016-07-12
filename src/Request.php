@@ -743,7 +743,7 @@ class Request
 		}
 		elseif ($region == 'cn-north-1')
 		{
-			return 's3' . $region . $endpoint;
+			return 's3.' . $region . $endpoint;
 		}
 
 		return str_replace('s3', 's3-' . $region, $endpoint);
