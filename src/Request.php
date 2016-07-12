@@ -711,7 +711,19 @@ class Request
 		 */
 		if (!$configuration->getUseLegacyPathStyle())
 		{
-			return $hostname;
+			/**
+			 * Apparently this used to be required by Amazon when I first wrote that code. Then Amazon decided it's
+			 * pretty lame not using the different hostnames per region (see below) and reverted this behaviour. To make
+			 * things interesting, Amazon decided to let the old buckets be accessible from a generic hostname in a full
+			 * b/c fashion BUT newly created buckets would not be allowed to be accessed with the generic hostname.
+			 * Therefore we have to remove that workaround for the old Amazon S3 inconsistency.
+			 *
+			 * Oh, in case you are wondering, no, Amazon did NOT update their v4 authentication documentation. If you
+			 * are reading this while trying to find why the v4 authentication does not work if you implement it exactly
+			 * per Amazon's documentation I feel for you. Shut down your computer and head to the nearest bar. Get
+			 * hammered. Come back to writing code tomorrow. There you go, dude... *pat on the back*
+			 */
+			// return $hostname;
 		}
 
 		/**
