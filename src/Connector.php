@@ -297,6 +297,60 @@ class Connector
 	}
 
 	/**
+	 * Get the location (region) of a bucket. You need this to use the V4 API on that bucket!
+	 *
+	 * @param   string   $bucket  Bucket name
+	 *
+	 * @return  string
+	 */
+	public function getBucketLocation($bucket)
+	{
+		$request = new Request('GET', $bucket, '', $this->configuration);
+		$request->setParameter('location', null);
+
+		$response = $request->getResponse();
+
+		if (!$response->error->isError() && $response->code !== 200)
+		{
+			$response->error = new Error(
+				$response->code,
+				"Unexpected HTTP status {$response->code}"
+			);
+		}
+
+		if ($response->error->isError())
+		{
+			throw new CannotGetBucket(
+				sprintf(__METHOD__ . "(): [%s] %s", $response->error->getCode(), $response->error->getMessage()),
+				$response->error->getCode()
+			);
+		}
+
+		$result = 'us-east-1';
+
+		if ($response->hasBody())
+		{
+			$result = (string) $response->body;
+		}
+
+		switch ($result)
+		{
+			// "EU" is an alias for 'eu-west-1', however the canonical location name you MUST use is 'eu-west-1'
+			case 'EU':
+			case 'eu':
+				$result = 'eu-west-1';
+				break;
+
+			// If the bucket location is 'us-east-1' you get an empty string. @#$%^&*()!!
+			case '':
+				$result = 'us-east-1';
+				break;
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Get the contents of a bucket
 	 *
 	 * If maxKeys is null this method will loop through truncated result sets

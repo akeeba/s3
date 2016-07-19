@@ -197,6 +197,14 @@ class V4 extends Signature
 		$bucketResource   = '/' . $bucket;
 		$regionalHostname = ($headers['Host'] != 's3.amazonaws.com') && ($headers['Host'] != $bucket . '.s3.amazonaws.com');
 
+		// Special case: if the canonical URI ends in /?location the bucket name DOES count as part of the canonical URL
+		// even though the Host is s3.amazonaws.com (in which case it normally shouldn't count). Yeah, I know, it makes
+		// no sense!!!
+		if (!$regionalHostname && ($headers['Host'] == 's3.amazonaws.com') && (substr($canonicalURI, -10) == '/?location'))
+		{
+			$regionalHostname = true;
+		}
+
 		if (!$regionalHostname && (strpos($canonicalURI, $bucketResource) === 0))
 		{
 			if ($canonicalURI === $bucketResource)

@@ -372,6 +372,16 @@ class Request
 			$schema = 'https://';
 		}
 
+		// Very special case. IF the URI ends in /?location AND the region is us-east-1 (Host is
+		// s3-external-1.amazonaws.com) THEN the host MUST become s3.amazonaws.com for the request to work. This is case
+		// of us not knowing the region of the bucket, therefore having to use a special endpoint which lets us query
+		// the region of the bucket without knowing its region. See
+		// http://stackoverflow.com/questions/27091816/retrieve-buckets-objects-without-knowing-buckets-region-with-aws-s3-rest-api
+		if ((substr($this->uri, - 10) == '/?location') && ($this->headers['Host'] == 's3-external-1.amazonaws.com'))
+		{
+			$this->headers['Host'] = 's3.amazonaws.com';
+		}
+
 		$url = $schema . $this->headers['Host'] . $this->uri;
 
 		// Basic setup
