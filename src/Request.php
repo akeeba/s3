@@ -353,7 +353,7 @@ class Request
 		$this->processParametersIntoResource();
 		$signer = Signature::getSignatureObject($this, $this->configuration->getSignatureMethod());
 
-		return $signer->getAuthenticatedURL($lifetime = null, $https = false);
+		return $signer->getAuthenticatedURL($lifetime, $https);
 	}
 
 	/**

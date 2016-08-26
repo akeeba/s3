@@ -71,21 +71,26 @@ class V4 extends Signature
 			$lifetime = 10;
 		}
 
+		/**
+		 * Authenticated URLs must always go through the generic regional endpoint, not the virtual hosting-style domain
+		 * name. This means that if you have a bucket "example" in the EU West 1 (Ireland) region we have to go through
+		 * http://s3-eu-west-1.amazonaws.com/example instead of http://example.amazonaws.com/ for all authenticated URLs
+		 */
+		$region   = $this->request->getConfiguration()->getRegion();
+		$hostname = $this->kot($region);
+		$this->request->setHeader('Host', $hostname);
+
+		// Set the expiration time in seconds
 		$this->request->setHeader('Expires', (int) $lifetime);
 
+		// Get the query parameters, including the calculated signature
 		$bucket           = $this->request->getBucket();
 		$uri              = $this->request->getResource();
 		$headers          = $this->request->getHeaders();
 		$protocol         = $https ? 'https' : 'http';
 		$serialisedParams = $this->getAuthorizationHeader();
 
-		$search = '/' . $bucket;
-
-		if (strpos($uri, $search) === 0)
-		{
-			$uri = substr($uri, strlen($search));
-		}
-
+		// The query parameters are returned serialized; unserialize them, then build and return the URL.
 		$queryParameters = unserialize($serialisedParams);
 
 		$query = http_build_query($queryParameters);
@@ -272,6 +277,11 @@ class V4 extends Signature
 		// ========== Step 2: Create a string to sign ==========
 		// See http://docs.aws.amazon.com/general/latest/gr/sigv4-create-string-to-sign.html
 
+		if (!isset($headers['Date']))
+		{
+			$headers['Date'] = '';
+		}
+
 		$stringToSign = "AWS4-HMAC-SHA256\n" .
 			$headers['Date'] . "\n" .
 			$credentialScope . "\n" .
@@ -333,4 +343,23 @@ class V4 extends Signature
 	{
 		return str_replace('+', '%20', urlencode($string));
 	}
+
+	private function kot($region)
+	{
+		$endpoint = 's3.amazonaws.com';
+
+		if ($region == 'us-east-1')
+		{
+			$region = 'external-1';
+		}
+		elseif ($region == 'cn-north-1')
+		{
+			$endpoint = 'amazonaws.com.cn';
+
+			return 's3.' . $region . '.' . $endpoint;
+		}
+
+		return str_replace('s3', 's3-' . $region, $endpoint);
+	}
+
 }
