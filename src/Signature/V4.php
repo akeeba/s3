@@ -178,11 +178,13 @@ class V4 extends Signature
 
 			if ($amazonIsBraindead && ($lowercaseHeaderName == 'content-length'))
 			{
-				// No, it doesn't look stupid. It is FUCKING STUPID. But somehow Amazon requires me to do it and only
-				// on some servers. Yeah, I had the same "WHAT THE ACTUAL FUCK?!" reaction myself, thank you very much.
-				// I wasted an entire day on this shit. And then you wonder why I write my own connector libraries
-				// instead of pulling something through Composer, huh? Because the official library doesn't deal with
-				// this stupid shit, that's why.
+				/**
+				 * I know it looks crazy. It is. Somehow Amazon requires me to do this and only on _some_ servers, mind
+				 * you. This is something undocumented and which is not covered by their official SDK. I had to write
+				 * my own library because of that and the official SDK's inability to upload large files without using
+				 * at least as much memory as the file itself (which doesn't fly well for files around 2Gb, let me tell
+				 * you that!).
+				 */
 				$v = "$v,$v";
 			}
 
