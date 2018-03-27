@@ -592,21 +592,21 @@ class Request
 
 		list($header, $value) = explode(': ', trim($data), 2);
 
-		switch ($header)
+		switch (strtolower($header))
 		{
-			case 'Last-Modified':
+			case 'last-modified':
 				$this->response->setHeader('time', strtotime($value));
 				break;
 
-			case 'Content-Length':
+			case 'content-length':
 				$this->response->setHeader('size', (int)$value);
 				break;
 
-			case 'Content-Type':
+			case 'content-type':
 				$this->response->setHeader('type', $value);
 				break;
 
-			case 'ETag':
+			case 'etag':
 				$this->response->setHeader('hash', $value{0} == '"' ? substr($value, 1, -1) : $value);
 				break;
 
@@ -617,7 +617,6 @@ class Request
 				}
 				break;
 		}
-
 		return $strlen;
 	}
 
