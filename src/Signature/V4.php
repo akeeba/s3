@@ -354,7 +354,7 @@ class V4 extends Signature
 		{
 			$region = 'external-1';
 		}
-		elseif ($region == 'cn-north-1')
+		elseif (substr($region, 0, 3) == 'cn-')
 		{
 			$endpoint = 'amazonaws.com.cn';
 

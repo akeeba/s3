@@ -750,7 +750,7 @@ class Request
 		{
 			$region = 'external-1';
 		}
-		elseif ($region == 'cn-north-1')
+		elseif (substr($region, 0, 3) == 'cn-')
 		{
 			return 's3.' . $region . '.' . $endpoint;
 		}
