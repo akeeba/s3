@@ -77,7 +77,7 @@ class V4 extends Signature
 		 * http://s3-eu-west-1.amazonaws.com/example instead of http://example.amazonaws.com/ for all authenticated URLs
 		 */
 		$region   = $this->request->getConfiguration()->getRegion();
-		$hostname = $this->kot($region);
+		$hostname = $this->getHostnameForRegion($region);
 		$this->request->setHeader('Host', $hostname);
 
 		// Set the expiration time in seconds
@@ -346,7 +346,14 @@ class V4 extends Signature
 		return str_replace('+', '%20', urlencode($string));
 	}
 
-	private function kot($region)
+	/**
+	 * Get the correct hostname for the given AWS region
+	 *
+	 * @param   string  $region
+	 *
+	 * @return  string
+	 */
+	private function getHostnameForRegion($region)
 	{
 		$endpoint = 's3.amazonaws.com';
 
