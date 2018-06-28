@@ -33,6 +33,13 @@ class Configuration
 	protected $secret = '';
 
 	/**
+	 * Security token. This is only required with temporary credentials provisioned by an EC2 instance.
+	 *
+	 * @var  string
+	 */
+	protected $token = '';
+
+	/**
 	 * Signature calculation method ('v2' or 'v4')
 	 *
 	 * @var  string
@@ -137,6 +144,26 @@ class Configuration
 		}
 
 		$this->secret = $secret;
+	}
+
+	/**
+	 * Return the security token. Only for temporary credentials provisioned through an EC2 instance.
+	 *
+	 * @return  string
+	 */
+	public function getToken()
+	{
+		return $this->token;
+	}
+
+	/**
+	 * Set the security token. Only for temporary credentials provisioned through an EC2 instance.
+	 *
+	 * @param  string  $token
+	 */
+	public function setToken($token)
+	{
+		$this->token = $token;
 	}
 
 	/**

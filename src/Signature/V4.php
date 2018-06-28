@@ -77,7 +77,7 @@ class V4 extends Signature
 		 * http://s3-eu-west-1.amazonaws.com/example instead of http://example.amazonaws.com/ for all authenticated URLs
 		 */
 		$region   = $this->request->getConfiguration()->getRegion();
-		$hostname = $this->getHostnameForRegion($region);
+		$hostname = $this->getPresignedHostnameForRegion($region);
 		$this->request->setHeader('Host', $hostname);
 
 		// Set the expiration time in seconds
@@ -143,10 +143,16 @@ class V4 extends Signature
 			$gmtDate = clone $signatureDate;
 			$gmtDate->setTimezone(new \DateTimeZone('GMT'));
 
-			$parameters['X-Amz-Algorithm'] = "AWS4-HMAC-SHA256";
-			$parameters['X-Amz-Credential'] = $this->request->getConfiguration()->getAccess() . '/' . $credentialScope;
-			$parameters['X-Amz-Date'] = $gmtDate->format('Ymd\THis\Z');
-			$parameters['X-Amz-Expires'] = sprintf('%u', $headers['Expires']);
+			$parameters['X-Amz-Algorithm']      = "AWS4-HMAC-SHA256";
+			$parameters['X-Amz-Credential']     = $this->request->getConfiguration()->getAccess() . '/' . $credentialScope;
+			$parameters['X-Amz-Date']           = $gmtDate->format('Ymd\THis\Z');
+			$parameters['X-Amz-Expires']        = sprintf('%u', $headers['Expires']);
+			$token                              = $this->request->getConfiguration()->getToken();
+
+			if (!empty($token))
+			{
+				$parameters['x-amz-security-token'] = $token;
+			}
 
 			unset($headers['Expires']);
 			unset($headers['Date']);
@@ -353,7 +359,7 @@ class V4 extends Signature
 	 *
 	 * @return  string
 	 */
-	private function getHostnameForRegion($region)
+	private function getPresignedHostnameForRegion($region)
 	{
 		$endpoint = 's3.amazonaws.com';
 

@@ -116,7 +116,7 @@ class Request
 	 * @param   string         $uri            Object URI
 	 * @param   Configuration  $configuration  The Amazon S3 configuration object to use
 	 *
-	 * @return  Request
+	 * @return  void
 	 */
 	function __construct($verb, $bucket = '', $uri = '', Configuration $configuration)
 	{
@@ -145,8 +145,18 @@ class Request
 			}
 		}
 
+		// The date must always be added as a header
 		$this->headers['Date'] = gmdate('D, d M Y H:i:s T');
 
+		// If there is a security token we need to set up the X-Amz-Security-Token header
+		$token = $this->configuration->getToken();
+
+		if (!empty($token))
+		{
+			$this->setAmzHeader('x-amz-security-token', $token);
+		}
+
+		// Initialize the response object
 		$this->response = new Response();
 	}
 

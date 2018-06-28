@@ -26,6 +26,34 @@ $configuration = new Configuration(
 $connector = new Connector($configuration);
 ```
 
+If you are running inside an Amazon EC2 instance you can fetch temporary credentials from the instance's metadata
+server using the IAM Role attached to the EC2 instance. In this case you need to do this (169.254.169.254 is a fixed
+IP hosting the instance's metadata cache service):
+
+```php
+$role = file_get_contents('http://169.254.169.254/latest/meta-data/iam/security-credentials/');
+$jsonCredentials = file_get_contents('http://169.254.169.254/latest/meta-data/iam/security-credentials/' . $role);
+$credentials = json_decode($jsonCredentials, true);
+$configuration = new Configuration(
+	$credentials['AccessKeyId'],
+	$credentials['SecretAccessKey'],
+	'v4',
+	$yourRegion
+);
+$configuration->setToken($credentials['Token']);
+
+$connector = new Connector($configuration);
+```
+
+where `$yourRegion` is the AWS region of your bucket, e.g. `us-east-1`. Please note that we are passing the security
+token (`$credentials['Token']`) to the Configuration object. This is REQUIRED. The temporary credentials returned by
+the metadata service won't work without it.
+
+Also worth noting is that the temporary credentials don't last forever. Check the `$credentials['Expiration']` to see
+when they are about to expire. Amazon recommends that you retry fetching new credentials from the metadata service
+10 minutes before your cached credentials are set to expire. The metadata service is guaranteed to provision fresh
+temporary credentials by that time. 
+
 ### Listing buckets
 
 ```php
