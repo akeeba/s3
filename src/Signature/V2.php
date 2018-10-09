@@ -77,6 +77,16 @@ class V2 extends Signature
 		));
 
 		$query = http_build_query($queryParameters);
+		
+		// fix authenticated url for Google Cloud Storage - https://cloud.google.com/storage/docs/access-control/create-signed-urls-program
+		if ($this->request->getConfiguration()->getEndpoint() === "storage.googleapis.com") {
+		    // replace host with endpoint
+		    $headers['Host'] = 'storage.googleapis.com';
+		    // replace "AWSAccessKeyId" with "GoogleAccessId"
+		    $query = str_replace('AWSAccessKeyId', 'GoogleAccessId', $query);
+		    // add bucket to url
+		    $uri = '/' . $bucket . $uri;
+		}
 
 		$url = $protocol . '://' . $headers['Host'] . $uri;
 		$url .= (strpos($uri, '?') !== false) ? '&' : '?';
