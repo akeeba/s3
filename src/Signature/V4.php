@@ -138,7 +138,7 @@ class V4 extends Signature
 		 *
 		 * @see http://docs.aws.amazon.com/general/latest/gr/sigv4-create-string-to-sign.html
 		 */
-		if (isset($headers['Expires']) && ($verb == 'GET'))
+		if (isset($headers['Expires']))
 		{
 			$gmtDate = clone $signatureDate;
 			$gmtDate->setTimezone(new \DateTimeZone('GMT'));

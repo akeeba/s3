@@ -131,7 +131,7 @@ class V2 extends Signature
 		// If the Expires query string parameter is set up we're pre-signing a download URL. The string to sign is a bit
 		// different in this case; it does not include the Date, it includes the Expires.
 		// See http://docs.aws.amazon.com/AmazonS3/latest/dev/RESTAuthentication.html#RESTAuthenticationQueryStringAuth
-		if (isset($headers['Expires']) && ($verb == 'GET'))
+		if (isset($headers['Expires']))
 		{
 			$headers['Date'] = $headers['Expires'];
 			unset ($headers['Expires']);
