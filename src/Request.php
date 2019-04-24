@@ -691,10 +691,16 @@ class Request
 	 */
 	private function getHostName(Configuration $configuration, $bucket)
 	{
-		//
 		// http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
 		$endpoint = $configuration->getEndpoint();
 		$hostname = $bucket . '.' . $endpoint;
+		$region   = $configuration->getRegion();
+
+		// If it's a bucket in China we need to use a different endpoint
+		if (($endpoint == 's3.amazonaws.com') && (substr($region, 0, 3) == 'cn-'))
+		{
+			$endpoint = 'amazonaws.com.cn';
+		}
 
 		/**
 		 * If there is no bucket we use the default endpoint, whatever it is. For Amazon S3 this format is only used
@@ -753,9 +759,6 @@ class Request
 		 *
 		 * Also China (cn-north-1) where it is s3.cn-north-1.amazonaws.com.cn
 		 */
-
-		$region = $configuration->getRegion();
-
 		if ($region == 'us-east-1')
 		{
 			$region = 'external-1';
