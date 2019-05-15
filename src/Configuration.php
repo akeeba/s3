@@ -193,6 +193,12 @@ class Configuration
 			throw new Exception\InvalidSignatureMethod;
 		}
 
+		// If you switch to v2 signatures we unset the region.
+		if ($signatureMethod == 'v2')
+		{
+			$this->setRegion('');
+		}
+
 		$this->signatureMethod = $signatureMethod;
 	}
 
@@ -213,9 +219,22 @@ class Configuration
 	 */
 	public function setRegion($region)
 	{
+		/**
+		 * You can only leave the region empty if you're using v2 signatures. Anything else gets you an exception.
+		 */
 		if (empty($region) && ($this->signatureMethod == 'v4'))
 		{
 			throw new Exception\InvalidRegion;
+		}
+
+		/**
+		 * Setting a Chinese-looking region force-changes the endpoint but ONLY if you were using the original Amazon S3
+		 * endpoint. If you're using a custom endpoint and provide a region with 'cn-' in its name we don't override
+		 * your custom endpoint.
+		 */
+		if (($this->endpoint == 's3.amazonaws.com') && (substr($region, 0, 3) == 'cn-'))
+		{
+			$this->setEndpoint('amazonaws.com.cn');
 		}
 
 		$this->region = $region;
@@ -263,11 +282,21 @@ class Configuration
 			throw new Exception\InvalidEndpoint;
 		}
 
+		/**
+		 * If you set a custom endpoint we have to switch to v2 signatures since our v4 implementation only supports
+		 * Amazon endpoints.
+		 */
+		if ((strpos($endpoint, 'amazonaws.com') === false))
+		{
+			$this->setSignatureMethod('v2');
+		}
+
 		$this->endpoint = $endpoint;
 	}
 
 	/**
-	 * Should I use legacy, path-style access to the bucket?
+	 * Should I use legacy, path-style access to the bucket? You should only use it with custom endpoints. Amazon itself
+	 * does not support path-style access since September 2020.
 	 *
 	 * @return  boolean
 	 */
