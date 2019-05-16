@@ -197,6 +197,17 @@ class Configuration
 		if ($signatureMethod == 'v2')
 		{
 			$this->setRegion('');
+
+			/**
+			 * If we are using Amazon S3 proper (not a custom endpoint) we have to set path style access to false.
+			 * Amazon S3 does not support v2 signatures with path style access at all (it returns an error telling
+			 * us to use the virtual hosting endpoint BUCKETNAME.s3.amazonaws.com).
+			 */
+			if (strpos($this->endpoint, 'amazonaws.com') !== false)
+			{
+				$this->setUseLegacyPathStyle(false);
+			}
+
 		}
 
 		$this->signatureMethod = $signatureMethod;
@@ -313,5 +324,15 @@ class Configuration
 	public function setUseLegacyPathStyle($useLegacyPathStyle)
 	{
 		$this->useLegacyPathStyle = $useLegacyPathStyle;
+
+		/**
+		 * If we are using Amazon S3 proper (not a custom endpoint) we have to set path style access to false.
+		 * Amazon S3 does not support v2 signatures with path style access at all (it returns an error telling
+		 * us to use the virtual hosting endpoint BUCKETNAME.s3.amazonaws.com).
+		 */
+		if ((strpos($this->endpoint, 'amazonaws.com') !== false) && ($this->signatureMethod == 'v2'))
+		{
+			$this->useLegacyPathStyle = false;
+		}
 	}
 }
