@@ -107,9 +107,10 @@ class V2 extends Signature
 		$headers        = $this->request->getHeaders();
 		$amzHeaders     = $this->request->getAmzHeaders();
 		$parameters     = $this->request->getParameters();
+		$bucket         = $this->request->getBucket();
 		$isPresignedURL = false;
 
-		$amz = array();
+		$amz       = array();
 		$amzString = '';
 
 		// Collect AMZ headers for signature
@@ -136,15 +137,24 @@ class V2 extends Signature
 			$headers['Date'] = $headers['Expires'];
 			unset ($headers['Expires']);
 
-			$isPresignedURL  = true;
+			$isPresignedURL = true;
+		}
+
+		/**
+		 * The resource path in S3 V2 signatures must ALWAYS contain the bucket name if a bucket is defined, even if we
+		 * are not using path-style access to the resource
+		 */
+		if (!empty($bucket) && !$this->request->getConfiguration()->getUseLegacyPathStyle())
+		{
+			$resourcePath = '/' . $bucket . $resourcePath;
 		}
 
 		$stringToSign = $verb . "\n" .
-						(isset($headers['Content-MD5']) ? $headers['Content-MD5'] : '') . "\n" .
-						(isset($headers['Content-Type']) ? $headers['Content-Type'] : '') . "\n" .
-		                $headers['Date'] .
-		                $amzString . "\n" .
-		                $resourcePath;
+			(isset($headers['Content-MD5']) ? $headers['Content-MD5'] : '') . "\n" .
+			(isset($headers['Content-Type']) ? $headers['Content-Type'] : '') . "\n" .
+			$headers['Date'] .
+			$amzString . "\n" .
+			$resourcePath;
 
 		// CloudFront only requires a date to be signed
 		if ($headers['Host'] == 'cloudfront.amazonaws.com')
@@ -162,8 +172,8 @@ class V2 extends Signature
 		}
 
 		return 'AWS ' .
-		       $this->request->getConfiguration()->getAccess() . ':' .
-		$amazonV2Hash;
+			$this->request->getConfiguration()->getAccess() . ':' .
+			$amazonV2Hash;
 	}
 
 	/**
