@@ -141,7 +141,7 @@ class Request
 		}
 
 		// The date must always be added as a header
-		$this->headers['Date'] = gmdate('D, d M Y H:i:s T');
+		$this->headers['Date'] = gmdate('D, d M Y H:i:s O');
 
 		// If there is a security token we need to set up the X-Amz-Security-Token header
 		$token = $this->configuration->getToken();
