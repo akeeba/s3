@@ -268,16 +268,56 @@ class Connector
 	{
 		// Get a request from the URI and bucket
 		$questionmarkPos = strpos($uri, '?');
-		$query = '';
+		$query           = '';
 
 		if ($questionmarkPos !== false)
 		{
 			$query = substr($uri, $questionmarkPos + 1);
-			$uri = substr($uri, 0, $questionmarkPos);
+			$uri   = substr($uri, 0, $questionmarkPos);
 		}
 
-		$uri     = str_replace('%2F', '/', rawurlencode($uri));
-		$request = new Request('GET', $bucket, $uri, $this->configuration);
+
+		/**
+		 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		 * !!!!             DO NOT TOUCH THIS CODE. YOU WILL BREAK PRE-SIGNED URLS WITH v4 SIGNATURES.              !!!!
+		 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		 *
+		 * The following two lines seem weird and possibly extraneous at first glance. However, they are VERY important.
+		 * If you remove them pre-signed URLs for v4 signatures will break! That's because pre-signed URLs with v4
+		 * signatures follow different rules than with v2 signatures.
+		 *
+		 * Authenticated (pre-signed) URLs are always made against the generic S3 region endpoint, not the bucket's
+		 * virtual-hosting-style domain name. The bucket is always the first component of the path.
+		 *
+		 * For example, given a bucket called foobar and an object baz.txt in it we are pre-signing the URL
+		 * https://s3-eu-west-1.amazonaws.com/foobar/baz.txt, not
+		 * https://foobar.s3-eu-west-1.amazonaws.com/foobar/baz.txt (as we'd be doing with v2 signatures).
+		 *
+		 * The problem is that the Request object needs to be created before we can convey the intent (regular request
+		 * or generation of a pre-signed URL). As a result its constructor creates the (immutable) request URI solely
+		 * based on whether the Configuration object's getUseLegacyPathStyle() returns false or not.
+		 *
+		 * Since we want to request URI to contain the bucket name we need to tell the Request object's constructor that
+		 * we are creating a Request object for path-style access, i.e. the useLegacyPathStyle flag in the Configuration
+		 * object is true. Naturally, the default behavior being virtual-hosting-style access to buckets, this flag is
+		 * most likely **false**.
+		 *
+		 * Therefore we need to clone the Configuration object, set the flag to true and create a Request object using
+		 * the falsified Configuration object.
+		 *
+		 * Note that v2 signatures are not affected. In v2 we are always appending the bucket name to the path, despite
+		 * the fact that we include the bucket name in the domain name.
+		 *
+		 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		 * !!!!             DO NOT TOUCH THIS CODE. YOU WILL BREAK PRE-SIGNED URLS WITH v4 SIGNATURES.              !!!!
+		 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		 */
+		$newConfig = clone $this->configuration;
+		$newConfig->setUseLegacyPathStyle(true);
+
+		// Create the request object.
+		$uri       = str_replace('%2F', '/', rawurlencode($uri));
+		$request = new Request('GET', $bucket, $uri, $newConfig);
 
 		if ($query)
 		{
