@@ -407,7 +407,9 @@ class Connector
 	public function getBucket($bucket, $prefix = null, $marker = null, $maxKeys = null, $delimiter = '/', $returnCommonPrefixes = false)
 	{
 		$request = new Request('GET', $bucket, '', $this->configuration);
-
+		
+		$request->setParameter('list-type', 2);
+		
 		if (!empty($prefix))
 		{
 			$request->setParameter('prefix', $prefix);
@@ -415,7 +417,7 @@ class Connector
 
 		if (!empty($marker))
 		{
-			$request->setParameter('marker', $marker);
+			$request->setParameter('start-after', $marker);
 		}
 
 		if (!empty($maxKeys))
@@ -480,9 +482,9 @@ class Connector
 			return $results;
 		}
 
-		if ($response->hasBody() && isset($response->body->NextMarker))
+		if ($response->hasBody() && isset($response->body->StartAfter))
 		{
-			$nextMarker = (string)$response->body->NextMarker;
+			$nextMarker = (string)$response->body->StartAfter;
 		}
 
 		// Loop through truncated results if maxKeys isn't specified
@@ -491,13 +493,15 @@ class Connector
 			do
 			{
 				$request = new Request('GET', $bucket, '', $this->configuration);
+				
+				$request->setParameter('list-type', 2);
 
 				if (!empty($prefix))
 				{
 					$request->setParameter('prefix', $prefix);
 				}
 
-				$request->setParameter('marker', $nextMarker);
+				$request->setParameter('start-after', $nextMarker);
 
 				if (!empty($delimiter))
 				{
@@ -536,9 +540,9 @@ class Connector
 					}
 				}
 
-				if ($response->hasBody() && isset($response->body->NextMarker))
+				if ($response->hasBody() && isset($response->body->StartAfter))
 				{
-					$nextMarker = (string)$response->body->NextMarker;
+					$nextMarker = (string)$response->body->StartAfter;
 				}
 			}
 			while (!$response->error->isError() && (string)$response->body->IsTruncated == 'true');
