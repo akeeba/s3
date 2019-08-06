@@ -608,7 +608,7 @@ class Request
 				break;
 
 			case 'etag':
-				$this->response->setHeader('hash', $value{0} == '"' ? substr($value, 1, -1) : $value);
+				$this->response->setHeader('hash', $value[0] == '"' ? substr($value, 1, -1) : $value);
 				break;
 
 			default:
