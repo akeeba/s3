@@ -718,29 +718,32 @@ class Request
 
 		/**
 		 * When using the Amazon S3 with the v4 signature API we have to use a different hostname per region. The
-		 * mapping can be found in http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
+		 * mapping can be found in https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_region
 		 *
-		 * This means changing the endpoint to s3-REGION.amazonaws.com with the following exceptions:
-		 * For us-east-1: s3-external-1.amazonaws.com
+		 * This means changing the endpoint to s3.REGION.amazonaws.com with the following exceptions:
 		 * For China: s3.REGION.amazonaws.com.cn
 		 *
 		 * v4 signing does NOT support non-Amazon endpoints.
 		 */
 
 		// Most endpoints: s3-REGION.amazonaws.com
-		$endpoint = 's3-' . $region . '.amazonaws.com';
-
-		// Exception: US East 1 endpoint is s3-external-1.amazonaws.com, NOT s3-us-east-1.amazonaws.com
-		if ($region == 'us-east-1')
-		{
-			$endpoint = 's3-external-1.amazonaws.com';
-		}
+		$regionalEndpoint = $region . '.amazonaws.com';
 
 		// Exception: China
 		if (substr($region, 0, 3) == 'cn-')
 		{
 			// Chinese endpoint, e.g.: s3.cn-north-1.amazonaws.com.cn
-			$endpoint = 's3.' . $region . '.amazonaws.com.cn';
+			$regionalEndpoint = $regionalEndpoint . '.cn';
+		}
+
+		// If dual-stack URLs are enabled then prepend the endpoint
+		if ($configuration->getDualstackUrl())
+		{
+			$endpoint = 's3.dualstack.' . $regionalEndpoint;
+		}
+		else
+		{
+			$endpoint = 's3.' . $regionalEndpoint;
 		}
 
 		// Legacy path style access: return just the endpoint
