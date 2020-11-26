@@ -344,7 +344,8 @@ class Configuration
 	}
 
 	/**
-	 * Should we use the dualstack URL (which will ship traffic over ipv6 in most cases)
+	 * Should we use the dualstack URL (which will ship traffic over ipv6 in most cases). For more information on these
+	 * endpoints please read https://docs.aws.amazon.com/AmazonS3/latest/dev/dual-stack-endpoints.html
 	 *
 	 * @return  boolean
 	 */
