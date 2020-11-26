@@ -360,20 +360,24 @@ class V4 extends Signature
 	 */
 	private function getPresignedHostnameForRegion($region)
 	{
-		$endpoint = 's3.amazonaws.com';
+		$dualstackEnabled  = $this->request->getConfiguration()->getDualstackUrl();
 
-		if ($region == 'us-east-1')
+		// If dual-stack URLs are enabled then prepend the endpoint
+		if ($dualstackEnabled)
 		{
-			$region = 'external-1';
+			$endpoint = 's3.dualstack.' . $region . '.amazonaws.com';
 		}
-		elseif (substr($region, 0, 3) == 'cn-')
+		else
 		{
-			$endpoint = 'amazonaws.com.cn';
-
-			return 's3.' . $region . '.' . $endpoint;
+			$endpoint = 's3.' . $region . '.amazonaws.com';
 		}
 
-		return str_replace('s3', 's3-' . $region, $endpoint);
+		if ($region == 'cn-north-1')
+		{
+			return $endpoint . '.cn';
+		}
+
+		return $endpoint;
 	}
 
 }
