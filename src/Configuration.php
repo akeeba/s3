@@ -60,6 +60,13 @@ class Configuration
 	protected $useSSL = true;
 
 	/**
+	 * Should I use SSL (HTTPS) to communicate to Amazon S3?
+	 *
+	 * @var  bool
+	 */
+	protected $useDualstackUrl = false;
+
+	/**
 	 * Should I use legacy, path-style access to the bucket? When it's turned off (default) we use virtual hosting style
 	 * paths which are RECOMMENDED BY AMAZON per http://docs.aws.amazon.com/AmazonS3/latest/API/APIRest.html
 	 *
@@ -306,7 +313,8 @@ class Configuration
 
 	/**
 	 * Should I use legacy, path-style access to the bucket? You should only use it with custom endpoints. Amazon itself
-	 * does not support path-style access since September 2020.
+	 * is currently deprecating support for path-style access but has extended the migration date to an unknown
+	 * time https://aws.amazon.com/blogs/aws/amazon-s3-path-deprecation-plan-the-rest-of-the-story/
 	 *
 	 * @return  boolean
 	 */
@@ -333,5 +341,26 @@ class Configuration
 		{
 			$this->useLegacyPathStyle = false;
 		}
+	}
+
+	/**
+	 * Should we use the dualstack URL (which will ship traffic over ipv6 in most cases). For more information on these
+	 * endpoints please read https://docs.aws.amazon.com/AmazonS3/latest/dev/dual-stack-endpoints.html
+	 *
+	 * @return  boolean
+	 */
+	public function getDualstackUrl()
+	{
+		return $this->useDualstackUrl;
+	}
+
+	/**
+	 * Set the flag for using legacy, path-style access to the bucket
+	 *
+	 * @param  boolean  $useLegacyPathStyle
+	 */
+	public function setUseDualstackUrl($useDualstackUrl)
+	{
+		$this->useDualstackUrl = $useDualstackUrl;
 	}
 }
