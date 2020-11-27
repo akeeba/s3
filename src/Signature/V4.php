@@ -360,16 +360,13 @@ class V4 extends Signature
 	 */
 	private function getPresignedHostnameForRegion($region)
 	{
+		$endpoint          = 's3.' . $region . '.amazonaws.com';
 		$dualstackEnabled  = $this->request->getConfiguration()->getDualstackUrl();
 
 		// If dual-stack URLs are enabled then prepend the endpoint
 		if ($dualstackEnabled)
 		{
 			$endpoint = 's3.dualstack.' . $region . '.amazonaws.com';
-		}
-		else
-		{
-			$endpoint = 's3.' . $region . '.amazonaws.com';
 		}
 
 		if ($region == 'cn-north-1')
