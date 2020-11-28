@@ -1,10 +1,11 @@
 {
   "name": "akeeba/s3",
   "type": "library",
-  "description": "Akeeba Engine connector for Amazon S3",
+  "description": "A compact, dependency-less Amazon S3 API client implementing the most commonly used features",
   "require": {
-    "php": ">=5.3.4",
-    "ext-curl": "*"
+    "php": ">=5.3.4 <8.0",
+    "ext-curl": "*",
+    "ext-simplexml": "*"
   },
   "keywords": [
     "s3"
