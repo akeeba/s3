@@ -10,9 +10,6 @@
 namespace Akeeba\MiniTest\Test;
 
 
-use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
-use Akeeba\Engine\Postproc\Connector\S3v4\Input;
-
 /**
  * Upload small files (under 1MB) using a file source
  *
