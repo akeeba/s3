@@ -52,7 +52,7 @@ class Connector
 	 *
 	 * @throws  CannotPutFile  If the upload is not possible
 	 */
-	public function putObject(Input $input, $bucket, $uri, $acl = Acl::ACL_PRIVATE, $requestHeaders = array())
+	public function putObject(Input $input, $bucket, $uri, $acl = Acl::ACL_PRIVATE, array $requestHeaders = array())
 	{
 		$request = new Request('PUT', $bucket, $uri, $this->configuration);
 		$request->setInput($input);
@@ -808,7 +808,7 @@ class Connector
 				// For some moronic reason, trying to multipart upload files on some hosts comes back with a crazy
 				// error from Amazon that we need to set Content-Length:5242880,5242880 instead of
 				// Content-Length:5242880 which is AGAINST Amazon's documentation. In this case we pass the header
-				// 'workaround-braindead-error-from-amazon' and retry. Whatever.
+				// 'workaround-broken-content-length' and retry. Whatever.
 				if (isset($response->body->CanonicalRequest))
 				{
 					$amazonsCanonicalRequest = (string)$response->body->CanonicalRequest;
@@ -825,9 +825,9 @@ class Connector
 
 						if (strpos($stupidAmazonDefinedContentLength, ',') !== false)
 						{
-							if (!isset($requestHeaders['workaround-braindead-error-from-amazon']))
+							if (!isset($requestHeaders['workaround-broken-content-length']))
 							{
-								$requestHeaders['workaround-braindead-error-from-amazon'] = 'you can\'t fix stupid';
+								$requestHeaders['workaround-broken-content-length'] = true;
 
 								// This is required to reset the input size to its default value. If you don't do that
 								// only one part will ever be uploaded. Oops!
