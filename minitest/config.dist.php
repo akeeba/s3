@@ -21,6 +21,38 @@ define('DEFAULT_SIGNATURE', 'v4');
 define('DEFAULT_DUALSTACK', false);
 // Use legacy path access by default?
 define('DEFAULT_PATH_ACCESS', false);
+// Should I use SSL by default?
+define('DEFAULT_SSL', true);
+
+/**
+ * Tests for standard key pairs allowing us to read, write and delete
+ *
+ * This is the main test suite
+ */
+$standardTests = array(
+	'SmallFiles',
+	'SmallInlineFiles',
+);
+
+/**
+ * Tests for key pairs or buckets which do NOT allow us to delete, but DO allow us to write and read data
+ *
+ * Example: archival buckets
+ */
+$noDeleteTests = array(
+	'SmallFilesNoDelete',
+	'SmallInlineFilesNoDelete',
+);
+
+/**
+ * Tests for key pairs which do NOT allow us to read, but DO allow us to write/delete
+ *
+ * Example: write-only key pairs per my documentation information from 2011 :)
+ */
+$writeOnlyTests = array(
+	'SmallFilesOnlyUpload',
+	'SmallInlineFilesOnlyUpload',
+);
 
 /**
  * These are the individual test configurations.
@@ -32,20 +64,99 @@ define('DEFAULT_PATH_ACCESS', false);
  *                      specific test methods only.
  */
 $testConfigurations = array(
-	'Description of this configuration' => array(
+// Format of each
+//	'Description of this configuration' => array(
+//		'configuration' => array(
+//			// You can skip one or more keys. The defaults will be used.
+//			'access' => 'a different access key',
+//			'secret' => 'a different secret key',
+//			'region' => 'eu-west-1',
+//			'bucket' => 'different_example',
+//			'signature' => 'v2',
+//			'dualstack' => true,
+//			'path_access' => true,
+//			'ssl' => true,
+//          // Only if you want to use a custom, non-Amazon endpoint
+//          'endpoint' => null,
+//		),
+//		'tests' => array(
+//          // Use a start to run all tests
+//			'*',
+//          // Alternatively you can define single test classes:
+//			'SmallFiles',
+//          // ..or specific tests:
+//			array('SmallFiles', 'upload10KbRoot'),
+//		)
+//	),
+	/**/
+
+	/**
+	 * These are the standard tests we run for each region and key pair.
+	 *
+	 * For all available regions please consult https://docs.aws.amazon.com/general/latest/gr/s3.html
+	 *
+	 * It is recommended to run against the following regions:
+	 * - eu-east-1     The original Amazon S3 region, it often has special meaning in APIs.
+	 * - eu-west-1     Ireland. The original EU region for S3, as a test for the non-default region.
+	 * - eu-central-1  Frankfurt. This region –like all newer regions– only allows v4 signatures!
+	 * - cn-north-1    Beijing, China. Requires running it from inside China.
+	 * - NON-AMAZON    A custom endpoint for a third party, S3-compatible API. Ideally one for v2 and one for v4.
+	 *
+	 * Further to that test the following:
+	 * - Write-only, bucket-restricted keys
+	 * - Read/write, bucket-restricted keys
+	 * - Buckets with dots
+	 * - Buckets with uppercase letters
+	 * - Buckets with international letters
+	 * - Access from within EC2
+	 */
+	'Global key, v4, DNS, single stack' => array(
 		'configuration' => array(
-			// You can skip one or more keys. The defaults will be used.
-			'access' => 'a different access key',
-			'secret' => 'a different secret key',
-			'region' => 'eu-west-1',
-			'bucket' => 'different_example',
-			'signature' => 'v2',
+			'signature' => 'v4',
+			'dualstack' => false,
+			'path_access' => false,
+		),
+		'tests' => $standardTests
+	),
+	'Global key, v4, DNS, dual stack' => array(
+		'configuration' => array(
+			'signature' => 'v4',
+			'dualstack' => true,
+			'path_access' => false,
+		),
+		'tests' => $standardTests
+	),
+	'Global key, v4, path, single stack' => array(
+		'configuration' => array(
+			'signature' => 'v4',
+			'dualstack' => false,
+			'path_access' => true,
+		),
+		'tests' => $standardTests
+	),
+	'Global key, v4, path, dual stack' => array(
+		'configuration' => array(
+			'signature' => 'v4',
 			'dualstack' => true,
 			'path_access' => true,
 		),
-		'tests' => array(
-			''
-		)
+		'tests' => $standardTests
 	),
-	// ...repeat as necessary
+
+	'Global key, v2, DNS, single stack' => array(
+		'configuration' => array(
+			'signature' => 'v2',
+			'dualstack' => false,
+			'path_access' => false,
+		),
+		'tests' => $standardTests
+	),
+	'Global key, v2, DNS, dual stack' => array(
+		'configuration' => array(
+			'signature' => 'v2',
+			'dualstack' => true,
+			'path_access' => false,
+		),
+		'tests' => $standardTests
+	),
 );

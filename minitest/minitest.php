@@ -72,7 +72,7 @@ function getTestMethods($className)
 
 	if (isset($classMethodMap[$className]))
 	{
-		return $className;
+		return $classMethodMap[$className];
 	}
 
 	$classMethodMap[$className] = array();
@@ -86,8 +86,22 @@ function getTestMethods($className)
 	$methods        = $reflectedClass->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_STATIC);
 
 	$classMethodMap[$className] = array_map(function (ReflectionMethod $refMethod) {
+		if ($refMethod->isPrivate() || $refMethod->isProtected() || $refMethod->isAbstract())
+		{
+			return null;
+		}
+
+		if (!$refMethod->isStatic())
+		{
+			return null;
+		}
+
 		return $refMethod->getName();
 	}, $methods);
+
+	$classMethodMap[$className] = array_filter($classMethodMap[$className], function ($method) {
+		return !is_null($method);
+	});
 
 	return $classMethodMap[$className];
 }
@@ -124,6 +138,8 @@ foreach ($testConfigurations as $description => $setup)
 		'signature'   => DEFAULT_SIGNATURE,
 		'dualstack'   => DEFAULT_DUALSTACK,
 		'path_access' => DEFAULT_PATH_ACCESS,
+		'ssl'         => DEFAULT_SSL,
+		'endpoint'    => null,
 	), $setup['configuration']);
 
 	// Extract the test classes/methods to run
@@ -143,6 +159,12 @@ foreach ($testConfigurations as $description => $setup)
 	$s3Configuration = new Configuration($configOptions['access'], $configOptions['secret'], $configOptions['signature'], $configOptions['region']);
 	$s3Configuration->setUseDualstackUrl($configOptions['dualstack']);
 	$s3Configuration->setUseLegacyPathStyle($configOptions['path_access']);
+	$s3Configuration->setSSL($configOptions['ssl']);
+
+	if (!is_null($configOptions['endpoint']))
+	{
+		$s3Configuration->setEndpoint($configOptions['endpoint']);
+	}
 
 	// Create the connector object
 	$s3Connector = new Connector($s3Configuration);
@@ -197,7 +219,7 @@ foreach ($testConfigurations as $description => $setup)
 
 			try
 			{
-				$result = call_user_func($className, $s3Connector, $configOptions);
+				$result = call_user_func(array($className, $method), $s3Connector, $configOptions);
 			}
 			catch (Exception $e)
 			{
@@ -233,9 +255,13 @@ foreach ($testConfigurations as $description => $setup)
 			}
 		}
 	}
+
+	echo PHP_EOL;
 }
 
-echo PHP_EOL . PHP_EOL;
+echo PHP_EOL;
+echo str_repeat('⎺', 80) . PHP_EOL;
+echo PHP_EOL;
 
 echo "Summary:" . PHP_EOL;
 echo "  Broken     : $broken" . PHP_EOL;
