@@ -115,6 +115,7 @@ require __DIR__ . '/config.php';
 
 global $testConfigurations;
 
+$total      = 0;
 $broken     = 0;
 $failed     = 0;
 $successful = 0;
@@ -183,6 +184,7 @@ foreach ($testConfigurations as $description => $setup)
 
 			if (!class_exists($className))
 			{
+				$total++;
 				$broken++;
 				echo "  ⁉️ Test class {$className} not found." . PHP_EOL;
 
@@ -196,6 +198,7 @@ foreach ($testConfigurations as $description => $setup)
 
 		foreach ($testInfo as $callable)
 		{
+			$total++;
 			list($className, $method) = $callable;
 
 			if (!class_exists($className))
@@ -264,9 +267,19 @@ echo str_repeat('⎺', 80) . PHP_EOL;
 echo PHP_EOL;
 
 echo "Summary:" . PHP_EOL;
-echo "  Broken     : $broken" . PHP_EOL;
-echo "  Failed     : $failed" . PHP_EOL;
-echo "  Successful : $successful" . PHP_EOL . PHP_EOL;
+if ($broken)
+{
+	echo "  Broken     : $broken" . PHP_EOL;
+}
+if ($failed)
+{
+	echo "  Failed     : $failed" . PHP_EOL;
+}
+if ($successful)
+{
+	echo "  Successful : $successful" . PHP_EOL;
+}
+echo "  Total      : $total" . PHP_EOL . PHP_EOL;
 
 echo "Conclusion: " . PHP_EOL . "  ";
 
