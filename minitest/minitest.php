@@ -100,7 +100,17 @@ function getTestMethods($className)
 	}, $methods);
 
 	$classMethodMap[$className] = array_filter($classMethodMap[$className], function ($method) {
-		return !is_null($method);
+		if (is_null($method))
+		{
+			return false;
+		}
+
+		if (in_array($method, array('setup', 'teardown')))
+		{
+			return false;
+		}
+
+		return true;
 	});
 
 	return $classMethodMap[$className];
@@ -196,6 +206,36 @@ foreach ($testConfigurations as $description => $setup)
 			}, getTestMethods($className));
 		}
 
+		$firstOne = false;
+		$className        = null;
+		$callableSetup    = null;
+		$callableTeardown = null;
+
+		if (!empty($testInfo))
+		{
+			$firstOne = array_shift($testInfo);
+			array_unshift($testInfo, $firstOne);
+		}
+
+		if ($firstOne)
+		{
+			list($className,) = $firstOne;
+
+			if ($className)
+			{
+				$callableSetup    = array($className, 'setup');
+				$callableTeardown = array($className, 'teardown');
+			}
+		}
+
+		if (is_callable($callableSetup))
+		{
+			list($className, $method) = $callableSetup;
+			echo "  ⏱ Preparing {$className}:{$method}…";
+			call_user_func($callableSetup, $s3Connector, $configOptions);
+			echo "\r     Prepared {$className}   " . PHP_EOL;
+		}
+
 		foreach ($testInfo as $callable)
 		{
 			$total++;
@@ -256,6 +296,14 @@ foreach ($testConfigurations as $description => $setup)
 			{
 				echo "    $line" . PHP_EOL;
 			}
+		}
+
+		if (is_callable($callableTeardown))
+		{
+			list($className, $method) = $callableSetup;
+			echo "  ⏱ Tearing down {$className}:{$method}…";
+			call_user_func($callableTeardown, $s3Connector, $configOptions);
+			echo "\r     Teared down {$className}   " . PHP_EOL;
 		}
 	}
 

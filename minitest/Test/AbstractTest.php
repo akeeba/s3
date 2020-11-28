@@ -9,6 +9,7 @@
 
 namespace Akeeba\MiniTest\Test;
 
+use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
 use RuntimeException;
 
 abstract class AbstractTest
@@ -30,6 +31,16 @@ abstract class AbstractTest
 	const BLOCK_SIZE = 1048576;
 
 	const FILE_HASHING_ALGORITHM = 'sha256';
+
+	public static function setup(Connector $s3, array $options)
+	{
+		// Runs before any test
+	}
+
+	public static function teardown(Connector $s3, array $options)
+	{
+		// Runs after all tests are finished
+	}
 
 	/**
 	 * Creates a file with random data and returns its file path.
