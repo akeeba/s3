@@ -217,4 +217,11 @@ abstract class AbstractTest
 		return $blockData;
 	}
 
+	protected static function assert($condition, $message)
+	{
+		if (!$condition)
+		{
+			throw new RuntimeException($message);
+		}
+	}
 }
