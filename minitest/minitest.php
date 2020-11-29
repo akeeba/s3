@@ -205,6 +205,28 @@ foreach ($testConfigurations as $description => $setup)
 				return array($className, $method);
 			}, getTestMethods($className));
 		}
+		else
+		{
+			list($className, $method) = $testInfo;
+
+			if (!class_exists($className))
+			{
+				$className = '\\Akeeba\\MiniTest\\Test\\' . $className;
+			}
+
+			if (!class_exists($className))
+			{
+				$total++;
+				$broken++;
+				echo "  ⁉️ Test class {$className} not found." . PHP_EOL;
+
+				continue;
+			}
+
+			$testInfo = array(
+				array($className, $method),
+			);
+		}
 
 		$firstOne = false;
 		$className        = null;
