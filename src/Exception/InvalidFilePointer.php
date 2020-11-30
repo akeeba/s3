@@ -13,10 +13,11 @@ namespace Akeeba\Engine\Postproc\Connector\S3v4\Exception;
 defined('AKEEBAENGINE') or die();
 
 use Exception;
+use InvalidArgumentException;
 
-class InvalidFilePointer extends \InvalidArgumentException
+class InvalidFilePointer extends InvalidArgumentException
 {
-	public function __construct($message = "", $code = 0, Exception $previous = null)
+	public function __construct(string $message = "", int $code = 0, Exception $previous = null)
 	{
 		if (empty($message))
 		{

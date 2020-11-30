@@ -15,7 +15,7 @@ use RuntimeException;
 
 class BucketsList extends AbstractTest
 {
-	public static function listBucketsDetailed(Connector $s3, array $options)
+	public static function listBucketsDetailed(Connector $s3, array $options): bool
 	{
 		$buckets = $s3->listBuckets(true);
 
@@ -39,7 +39,7 @@ class BucketsList extends AbstractTest
 		throw new RuntimeException("Detailed buckets list does not include configured bucket ‘{$options['bucket']}′");
 	}
 
-	public static function listBucketsSimple(Connector $s3, array $options)
+	public static function listBucketsSimple(Connector $s3, array $options): bool
 	{
 		$buckets = $s3->listBuckets(false);
 

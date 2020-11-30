@@ -30,7 +30,7 @@ class V2 extends Signature
 	 *
 	 * @return  void
 	 */
-	public function preProcessHeaders(&$headers, &$amzHeaders)
+	public function preProcessHeaders(array &$headers, array &$amzHeaders): void
 	{
 		// No pre-processing required for V2 signatures
 	}
@@ -39,12 +39,12 @@ class V2 extends Signature
 	 * Get a pre-signed URL for the request. Typically used to pre-sign GET requests to objects, i.e. give shareable
 	 * pre-authorized URLs for downloading files from S3.
 	 *
-	 * @param   integer  $lifetime    Lifetime in seconds
-	 * @param   boolean  $https       Use HTTPS ($hostBucket should be false for SSL verification)?
+	 * @param   integer|null  $lifetime  Lifetime in seconds. NULL for default lifetime.
+	 * @param   bool          $https     Use HTTPS ($hostBucket should be false for SSL verification)?
 	 *
 	 * @return  string  The presigned URL
 	 */
-	public function getAuthenticatedURL($lifetime = null, $https = false)
+	public function getAuthenticatedURL(?int $lifetime = null, bool $https = false): string
 	{
 		// Set the Expires header
 		if (is_null($lifetime))
@@ -69,22 +69,23 @@ class V2 extends Signature
 			$uri = substr($uri, strlen($search));
 		}
 
-		$queryParameters = array_merge($this->request->getParameters(), array(
-			'AWSAccessKeyId'	=> $accessKey,
-			'Expires'			=> sprintf('%u', $expires),
-			'Signature'			=> $signature,
-		));
+		$queryParameters = array_merge($this->request->getParameters(), [
+			'AWSAccessKeyId' => $accessKey,
+			'Expires'        => sprintf('%u', $expires),
+			'Signature'      => $signature,
+		]);
 
 		$query = http_build_query($queryParameters);
-		
+
 		// fix authenticated url for Google Cloud Storage - https://cloud.google.com/storage/docs/access-control/create-signed-urls-program
-		if ($this->request->getConfiguration()->getEndpoint() === "storage.googleapis.com") {
-		    // replace host with endpoint
-		    $headers['Host'] = 'storage.googleapis.com';
-		    // replace "AWSAccessKeyId" with "GoogleAccessId"
-		    $query = str_replace('AWSAccessKeyId', 'GoogleAccessId', $query);
-		    // add bucket to url
-		    $uri = '/' . $bucket . $uri;
+		if ($this->request->getConfiguration()->getEndpoint() === "storage.googleapis.com")
+		{
+			// replace host with endpoint
+			$headers['Host'] = 'storage.googleapis.com';
+			// replace "AWSAccessKeyId" with "GoogleAccessId"
+			$query = str_replace('AWSAccessKeyId', 'GoogleAccessId', $query);
+			// add bucket to url
+			$uri = '/' . $bucket . $uri;
 		}
 
 		$url = $protocol . '://' . $headers['Host'] . $uri;
@@ -99,7 +100,7 @@ class V2 extends Signature
 	 *
 	 * @return  string
 	 */
-	public function getAuthorizationHeader()
+	public function getAuthorizationHeader(): string
 	{
 		$verb           = strtoupper($this->request->getVerb());
 		$resourcePath   = $this->request->getResource();
@@ -109,7 +110,7 @@ class V2 extends Signature
 		$bucket         = $this->request->getBucket();
 		$isPresignedURL = false;
 
-		$amz       = array();
+		$amz       = [];
 		$amzString = '';
 
 		// Collect AMZ headers for signature
@@ -178,28 +179,28 @@ class V2 extends Signature
 	/**
 	 * Creates a HMAC-SHA1 hash. Uses the hash extension if present, otherwise falls back to slower, manual calculation.
 	 *
-	 * @param   string  $string  String to sign
+	 * @param   string  $stringToSign  String to sign
 	 *
 	 * @return  string
 	 */
-	private function amazonV2Hash($string)
+	private function amazonV2Hash(string $stringToSign): string
 	{
 		$secret = $this->request->getConfiguration()->getSecret();
 
 		if (extension_loaded('hash'))
 		{
-			$raw = hash_hmac('sha1', $string, $secret, true);
+			$raw = hash_hmac('sha1', $stringToSign, $secret, true);
 
 			return base64_encode($raw);
 		}
 
 		$raw = pack('H*', sha1(
-					(str_pad($secret, 64, chr(0x00)) ^ (str_repeat(chr(0x5c), 64))) .
-					pack('H*', sha1(
-						(str_pad($secret, 64, chr(0x00)) ^ (str_repeat(chr(0x36), 64))) . $string
-						)
+				(str_pad($secret, 64, chr(0x00)) ^ (str_repeat(chr(0x5c), 64))) .
+				pack('H*', sha1(
+						(str_pad($secret, 64, chr(0x00)) ^ (str_repeat(chr(0x36), 64))) . $stringToSign
 					)
 				)
+			)
 		);
 
 		return base64_encode($raw);

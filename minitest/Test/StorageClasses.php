@@ -21,21 +21,21 @@ class StorageClasses extends AbstractTest
 
 	protected static $deleteRemote = true;
 
-	public static function uploadRRS(Connector $s3, array $options)
+	public static function uploadRRS(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, self::TEN_KB, 'rrs_test_10kb.dat', StorageClass::REDUCED_REDUNDANCY);
 	}
 
-	public static function uploadIntelligentTiering(Connector $s3, array $options)
+	public static function uploadIntelligentTiering(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, self::TEN_KB, 'rrs_test_10kb.dat', StorageClass::INTELLIGENT_TIERING);
 	}
 
-	protected static function upload(Connector $s3, array $options, $size, $uri, $storageClass = null)
+	protected static function upload(Connector $s3, array $options, int $size, string $uri, string $storageClass = null)
 	{
 		// Randomize the name. Required for archive buckets where you cannot overwrite data.
 		$dotPos = strrpos($uri, '.');
-		$uri = substr($uri, 0, $dotPos) . '.' . md5(microtime(false)) . substr($uri, $dotPos);
+		$uri    = substr($uri, 0, $dotPos) . '.' . md5(microtime(false)) . substr($uri, $dotPos);
 
 		// Create some random data to upload
 		$sourceData = self::getRandomData($size);
@@ -45,7 +45,7 @@ class StorageClasses extends AbstractTest
 		$input  = Input::createFromData($sourceData);
 
 		// Get the headers
-		$headers = array();
+		$headers = [];
 		StorageClass::setStorageClass($headers, $storageClass);
 
 		$s3->putObject($input, $bucket, $uri, Acl::ACL_PRIVATE, $headers);

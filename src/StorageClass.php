@@ -74,10 +74,10 @@ class StorageClass
 	 *
 	 * @return  void
 	 */
-	public static function setStorageClass(array &$headers, $storageClass)
+	public static function setStorageClass(array &$headers, string $storageClass): void
 	{
 		// Remove all previously set X-Amz-Storage-Class headers (case-insensitive)
-		$killList = array();
+		$killList = [];
 
 		foreach ($headers as $key => $value)
 		{

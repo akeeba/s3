@@ -18,11 +18,26 @@ defined('AKEEBAENGINE') or die();
 class Input
 {
 	/**
+	 * Input type: resource
+	 */
+	const INPUT_RESOURCE = 1;
+
+	/**
+	 * Input type: file
+	 */
+	const INPUT_FILE = 2;
+
+	/**
+	 * Input type: raw data
+	 */
+	const INPUT_DATA = 3;
+
+	/**
 	 * File pointer, in case we have a resource
 	 *
 	 * @var  resource
 	 */
-	private $fp  = null;
+	private $fp = null;
 
 	/**
 	 * Absolute filename to the file
@@ -48,70 +63,55 @@ class Input
 	/**
 	 * Content type (MIME type)
 	 *
-	 * @var  string
+	 * @var  string|null
 	 */
 	private $type = '';
 
 	/**
 	 * MD5 sum of the data to upload, as base64 encoded string. If it's false no MD5 sum will be returned.
 	 *
-	 * @var  string|bool
+	 * @var  string|null
 	 */
 	private $md5sum = null;
 
 	/**
 	 * SHA-256 sum of the data to upload, as lowercase hex string.
 	 *
-	 * @var  string
+	 * @var  string|null
 	 */
 	private $sha256 = null;
 
 	/**
 	 * The Upload Session ID used for multipart uploads
 	 *
-	 * @var  string
+	 * @var  string|null
 	 */
 	private $UploadID = null;
 
 	/**
 	 * The part number used in multipart uploads
 	 *
-	 * @var  null
+	 * @var  int|null
 	 */
 	private $PartNumber = null;
 
 	/**
 	 * The list of ETags used when finalising a multipart upload
 	 *
-	 * @var  array
+	 * @var  string[]
 	 */
-	private $etags = array();
-
-	/**
-	 * Input type: resource
-	 */
-	const INPUT_RESOURCE = 1;
-
-	/**
-	 * Input type: file
-	 */
-	const INPUT_FILE     = 2;
-
-	/**
-	 * Input type: raw data
-	 */
-	const INPUT_DATA     = 3;
+	private $etags = [];
 
 	/**
 	 * Create an input object from a file (also: any valid URL wrapper)
 	 *
-	 * @param   string        $file       Absolute file path or any valid URL fopen() wrapper
-	 * @param   bool|string   $md5sum     The MD5 sum. null to auto calculate, false to never calculate.
-	 * @param   null|string   $sha256sum  The SHA256 sum. null to auto calculate.
+	 * @param   string       $file       Absolute file path or any valid URL fopen() wrapper
+	 * @param   null|string  $md5sum     The MD5 sum. null to auto calculate, empty string to never calculate.
+	 * @param   null|string  $sha256sum  The SHA256 sum. null to auto calculate.
 	 *
 	 * @return  Input
 	 */
-	public static function createFromFile($file, $md5sum = false, $sha256sum = null)
+	public static function createFromFile(string $file, ?string $md5sum = null, ?string $sha256sum = null): self
 	{
 		$input = new Input();
 
@@ -125,21 +125,45 @@ class Input
 	/**
 	 * Create an input object from a stream resource / file pointer.
 	 *
-	 * Please note that the contentLength cannot be calcualted automatically unless you have a seekable stream resource.
+	 * Please note that the contentLength cannot be calculated automatically unless you have a seekable stream resource.
 	 *
-	 * @param   resource      $resource       The file pointer or stream resource
-	 * @param   int           $contentLength  The length of the content in bytes. Set to -1 for auto calculation.
-	 * @param   bool|string   $md5sum         The MD5 sum. null to auto calculate, false to never calculate.
-	 * @param   null|string   $sha256sum      The SHA256 sum. null to auto calculate.
+	 * @param   resource     $resource       The file pointer or stream resource
+	 * @param   int          $contentLength  The length of the content in bytes. Set to -1 for auto calculation.
+	 * @param   null|string  $md5sum         The MD5 sum. null to auto calculate, empty string to never calculate.
+	 * @param   null|string  $sha256sum      The SHA256 sum. null to auto calculate.
 	 *
 	 * @return  Input
 	 */
-	public static function createFromResource(&$resource, $contentLength, $md5sum = false, $sha256sum = null)
+	public static function createFromResource(&$resource, int $contentLength, ?string $md5sum = null, ?string $sha256sum = null): self
 	{
 		$input = new Input();
 
 		$input->setFp($resource);
 		$input->setSize($contentLength);
+		$input->setMd5sum($md5sum);
+		$input->setSha256($sha256sum);
+
+		return $input;
+	}
+
+	/**
+	 * Create an input object from raw data.
+	 *
+	 * Please bear in mind that the data is being duplicated in memory. Therefore you'll need at least 2xstrlen($data)
+	 * of free memory when you are using this method. You can instantiate an object and use assignData to work around
+	 * this limitation when handling large amounts of data which may cause memory outages (typically: over 10Mb).
+	 *
+	 * @param   string       $data       The data to use.
+	 * @param   null|string  $md5sum     The MD5 sum. null to auto calculate, empty string to never calculate.
+	 * @param   null|string  $sha256sum  The SHA256 sum. null to auto calculate.
+	 *
+	 * @return  Input
+	 */
+	public static function createFromData(string &$data, ?string $md5sum = null, ?string $sha256sum = null): self
+	{
+		$input = new Input();
+
+		$input->setData($data);
 		$input->setMd5sum($md5sum);
 		$input->setSha256($sha256sum);
 
@@ -158,35 +182,11 @@ class Input
 	}
 
 	/**
-	 * Create an input object from raw data.
-	 *
-	 * Please bear in mind that the data is being duplicated in memory. Therefore you'll need at least 2xstrlen($data)
-	 * of free memory when you are using this method. You can instantiate an object and use assignData to work around
-	 * this limitation when handling large amounts of data which may cause memory outages (typically: over 10Mb).
-	 *
-	 * @param   string        $data       The data to use.
-	 * @param   bool|string   $md5sum     The MD5 sum. null to auto calculate, false to never calculate.
-	 * @param   null|string   $sha256sum  The SHA256 sum. null to auto calculate.
-	 *
-	 * @return  Input
-	 */
-	public static function createFromData(&$data, $md5sum = false, $sha256sum = null)
-	{
-		$input = new Input();
-
-		$input->setData($data);
-		$input->setMd5sum($md5sum);
-		$input->setSha256($sha256sum);
-
-		return $input;
-	}
-
-	/**
 	 * Returns the input type (resource, file or data)
 	 *
 	 * @return  int
 	 */
-	public function getInputType()
+	public function getInputType(): int
 	{
 		if (!empty($this->file))
 		{
@@ -221,7 +221,7 @@ class Input
 	 *
 	 * @param   resource  $fp
 	 */
-	public function setFp($fp)
+	public function setFp($fp): void
 	{
 		if (!is_resource($fp))
 		{
@@ -236,7 +236,7 @@ class Input
 	 *
 	 * @return  string|null
 	 */
-	public function getFile()
+	public function getFile(): ?string
 	{
 		if (empty($this->file))
 		{
@@ -247,11 +247,11 @@ class Input
 	}
 
 	/**
-	 * Set the asbolute path to the input file
+	 * Set the absolute path to the input file
 	 *
 	 * @param   string  $file
 	 */
-	public function setFile($file)
+	public function setFile(string $file): void
 	{
 		$this->file = $file;
 		$this->data = null;
@@ -272,9 +272,9 @@ class Input
 	/**
 	 * Return the raw input data, or null if this is a file or stream input
 	 *
-	 * @return  string
+	 * @return  string|null
 	 */
-	public function getData()
+	public function getData(): ?string
 	{
 		if (empty($this->data) && ($this->getInputType() != self::INPUT_DATA))
 		{
@@ -285,26 +285,11 @@ class Input
 	}
 
 	/**
-	 * Return a reference to the raw input data
-	 *
-	 * @return  string
-	 */
-	public function &getDataReference()
-	{
-		if (empty($this->data) && ($this->getInputType() != self::INPUT_DATA))
-		{
-			$this->data = null;
-		}
-
-		return $this->data;
-	}
-
-	/**
 	 * Set the raw input data
 	 *
 	 * @param   string  $data
 	 */
-	public function setData($data)
+	public function setData(string $data): void
 	{
 		$this->data = $data;
 
@@ -318,12 +303,27 @@ class Input
 	}
 
 	/**
+	 * Return a reference to the raw input data
+	 *
+	 * @return  string|null
+	 */
+	public function &getDataReference(): ?string
+	{
+		if (empty($this->data) && ($this->getInputType() != self::INPUT_DATA))
+		{
+			$this->data = null;
+		}
+
+		return $this->data;
+	}
+
+	/**
 	 * Set the raw input data by doing an assignment instead of memory copy. While this conserves memory you cannot use
 	 * this with hardcoded strings, method results etc without going through a variable first.
 	 *
 	 * @param   string  $data
 	 */
-	public function assignData(&$data)
+	public function assignData(string &$data): void
 	{
 		$this->data = $data;
 
@@ -341,7 +341,7 @@ class Input
 	 *
 	 * @return  int
 	 */
-	public function getSize()
+	public function getSize(): int
 	{
 		if ($this->size < 0)
 		{
@@ -354,9 +354,9 @@ class Input
 	/**
 	 * Set the size of the data to be uploaded.
 	 *
-	 * @param  int  $size
+	 * @param   int  $size
 	 */
-	public function setSize($size)
+	public function setSize(int $size)
 	{
 		$this->size = $size;
 	}
@@ -364,9 +364,9 @@ class Input
 	/**
 	 * Get the MIME type of the data
 	 *
-	 * @return  string
+	 * @return  string|null
 	 */
-	public function getType()
+	public function getType(): ?string
 	{
 		if (empty($this->type))
 		{
@@ -384,9 +384,9 @@ class Input
 	/**
 	 * Set the MIME type of the data
 	 *
-	 * @param string $type
+	 * @param   string|null  $type
 	 */
-	public function setType($type)
+	public function setType(?string $type)
 	{
 		$this->type = $type;
 	}
@@ -396,14 +396,14 @@ class Input
 	 *
 	 * @return  null|string
 	 */
-	public function getMd5sum()
+	public function getMd5sum(): ?string
 	{
-		if ($this->md5sum === false)
+		if ($this->md5sum === '')
 		{
 			return null;
 		}
 
-		if (empty($this->md5sum))
+		if (is_null($this->md5sum))
 		{
 			$this->md5sum = $this->calculateMd5();
 		}
@@ -412,12 +412,16 @@ class Input
 	}
 
 	/**
-	 * Set the MD5 sum of the content. It must be a base64 encoded string of the raw MD5 binary value. Because Amazon.
-	 * Don't ask! You can also specify boolean false which means that we will never try to calculate an MD5 sum.
+	 * Set the MD5 sum of the content as a base64 encoded string of the raw MD5 binary value.
 	 *
-	 * @param  bool|string  $md5sum
+	 * WARNING: Do not set a binary MD5 sum or a hex-encoded MD5 sum, it will result in an invalid signature error!
+	 *
+	 * Set to null to automatically calculate it from the raw data. Set to an empty string to force it to never be
+	 * calculated and no value for it set either.
+	 *
+	 * @param   string|null  $md5sum
 	 */
-	public function setMd5sum($md5sum)
+	public function setMd5sum(?string $md5sum): void
 	{
 		$this->md5sum = $md5sum;
 	}
@@ -427,7 +431,7 @@ class Input
 	 *
 	 * @return  string
 	 */
-	public function getSha256()
+	public function getSha256(): string
 	{
 		if (empty($this->sha256))
 		{
@@ -438,11 +442,13 @@ class Input
 	}
 
 	/**
-	 * Set the SHA-256 sum of the content. It must be a lowercase hex string.
+	 * Set the SHA-256 sum of the content. It must be a lowercase hexadecimal encoded string.
 	 *
-	 * @param   string  $sha256
+	 * Set to null to automatically calculate it from the raw data.
+	 *
+	 * @param   string|null  $sha256
 	 */
-	public function setSha256($sha256)
+	public function setSha256(?string $sha256): void
 	{
 		$this->sha256 = strtolower($sha256);
 	}
@@ -450,9 +456,9 @@ class Input
 	/**
 	 * Get the Upload Session ID for multipart uploads
 	 *
-	 * @return  string
+	 * @return  string|null
 	 */
-	public function getUploadID()
+	public function getUploadID(): ?string
 	{
 		return $this->UploadID;
 	}
@@ -460,19 +466,21 @@ class Input
 	/**
 	 * Set the Upload Session ID for multipart uploads
 	 *
-	 * @param   string  $UploadID
+	 * @param   string|null  $UploadID
 	 */
-	public function setUploadID($UploadID)
+	public function setUploadID(?string $UploadID): void
 	{
 		$this->UploadID = $UploadID;
 	}
 
 	/**
-	 * Get the part number for multipart uploads
+	 * Get the part number for multipart uploads.
 	 *
-	 * @return  null|int
+	 * Returns null if the part number has not been set yet.
+	 *
+	 * @return  int|null
 	 */
-	public function getPartNumber()
+	public function getPartNumber(): ?int
 	{
 		return $this->PartNumber;
 	}
@@ -482,17 +490,18 @@ class Input
 	 *
 	 * @param   int  $PartNumber
 	 */
-	public function setPartNumber($PartNumber)
+	public function setPartNumber(int $PartNumber): void
 	{
-		$this->PartNumber = (int)$PartNumber;
+		// Clamp the part number to integers greater than zero.
+		$this->PartNumber = max(1, (int) $PartNumber);
 	}
 
 	/**
 	 * Get the list of ETags for multipart uploads
 	 *
-	 * @return  array
+	 * @return  string[]
 	 */
-	public function getEtags()
+	public function getEtags(): array
 	{
 		return $this->etags;
 	}
@@ -500,9 +509,9 @@ class Input
 	/**
 	 * Set the list of ETags for multipart uploads
 	 *
-	 * @param   array  $etags
+	 * @param   string[]  $etags
 	 */
-	public function setEtags(array $etags)
+	public function setEtags(array $etags): void
 	{
 		$this->etags = $etags;
 	}
@@ -518,7 +527,7 @@ class Input
 	 *
 	 * @return  int
 	 */
-	private function getInputSize()
+	private function getInputSize(): int
 	{
 		switch ($this->getInputType())
 		{
@@ -529,7 +538,9 @@ class Input
 			case self::INPUT_FILE:
 				clearstatcache(true, $this->file);
 
-				return @filesize($this->file);
+				$filesize = @filesize($this->file);
+
+				return ($filesize === false) ? 0 : $filesize;
 				break;
 
 			case self::INPUT_RESOURCE:
@@ -537,7 +548,7 @@ class Input
 
 				if ($meta['seekable'])
 				{
-					$pos = ftell($this->fp);
+					$pos    = ftell($this->fp);
 					$endPos = fseek($this->fp, 0, SEEK_END);
 					fseek($this->fp, $pos, SEEK_SET);
 
@@ -557,14 +568,14 @@ class Input
 	 *
 	 * @return  string  The MIME type of the file
 	 */
-	private function getMimeType($file)
+	private function getMimeType(string $file): string
 	{
 		$type = false;
 
 		// Fileinfo documentation says fileinfo_open() will use the
 		// MAGIC env var for the magic file
 		if (extension_loaded('fileinfo') && isset($_ENV['MAGIC']) &&
-		    ($finfo = finfo_open(FILEINFO_MIME, $_ENV['MAGIC'])) !== false
+			($finfo = finfo_open(FILEINFO_MIME, $_ENV['MAGIC'])) !== false
 		)
 		{
 			if (($type = finfo_file($finfo, $file)) !== false)
@@ -589,7 +600,7 @@ class Input
 		}
 
 		// Otherwise do it the old fashioned way
-		static $exts = array(
+		static $exts = [
 			'jpg'  => 'image/jpeg',
 			'gif'  => 'image/gif',
 			'png'  => 'image/png',
@@ -619,12 +630,12 @@ class Input
 			'mpeg' => 'video/mpeg',
 			'mov'  => 'video/quicktime',
 			'flv'  => 'video/x-flv',
-			'php'  => 'text/x-php'
-		);
+			'php'  => 'text/x-php',
+		];
 
 		$ext = strtolower(pathInfo($file, PATHINFO_EXTENSION));
 
-		return isset($exts[ $ext ]) ? $exts[ $ext ] : 'application/octet-stream';
+		return isset($exts[$ext]) ? $exts[$ext] : 'application/octet-stream';
 	}
 
 	/**
@@ -632,7 +643,7 @@ class Input
 	 *
 	 * @return  string  Base-64 encoded MD5 sum
 	 */
-	private function calculateMd5()
+	private function calculateMd5(): string
 	{
 		switch ($this->getInputType())
 		{
@@ -645,25 +656,28 @@ class Input
 				break;
 
 			case self::INPUT_RESOURCE:
-				$ctx = hash_init('md5');
-				$pos = ftell($this->fp);
-				$size = $this->getSize();
-				$done = 0;
+				$ctx   = hash_init('md5');
+				$pos   = ftell($this->fp);
+				$size  = $this->getSize();
+				$done  = 0;
 				$batch = min(1048576, $size);
 
 				while ($done < $size)
 				{
 					$toRead = min($batch, $done - $size);
-					$data = @fread($this->fp, $toRead);
+					$data   = @fread($this->fp, $toRead);
 					hash_update($ctx, $data);
 					unset($data);
 				}
 
 				fseek($this->fp, $pos, SEEK_SET);
+
 				return base64_encode(hash_final($ctx, true));
 
 				break;
 		}
+
+		return '';
 	}
 
 	/**
@@ -671,7 +685,7 @@ class Input
 	 *
 	 * @return  string  Lowercase hex representation of the SHA-256 sum
 	 */
-	private function calculateSha256()
+	private function calculateSha256(): string
 	{
 		$inputType = $this->getInputType();
 		switch ($inputType)
@@ -685,7 +699,7 @@ class Input
 				if ($inputType == self::INPUT_FILE)
 				{
 					$filesize = @filesize($this->file);
-					$fPos = @ftell($this->fp);
+					$fPos     = @ftell($this->fp);
 
 					if (($filesize == $this->getSize()) && ($fPos === 0))
 					{
@@ -693,25 +707,28 @@ class Input
 					}
 				}
 
-				$ctx = hash_init('sha256');
-				$pos = ftell($this->fp);
-				$size = $this->getSize();
-				$done = 0;
+				$ctx   = hash_init('sha256');
+				$pos   = ftell($this->fp);
+				$size  = $this->getSize();
+				$done  = 0;
 				$batch = min(1048576, $size);
 
 				while ($done < $size)
 				{
 					$toRead = min($batch, $size - $done);
-					$data = @fread($this->fp, $toRead);
-					$done += $toRead;
+					$data   = @fread($this->fp, $toRead);
+					$done   += $toRead;
 					hash_update($ctx, $data);
 					unset($data);
 				}
 
 				fseek($this->fp, $pos, SEEK_SET);
+
 				return hash_final($ctx, false);
 
 				break;
 		}
+
+		return '';
 	}
 }

@@ -12,10 +12,12 @@ namespace Akeeba\Engine\Postproc\Connector\S3v4\Exception;
 // Protection against direct access
 defined('AKEEBAENGINE') or die();
 
+use RuntimeException;
+
 /**
  * Configuration error
  */
-abstract class ConfigurationError extends \RuntimeException
+abstract class ConfigurationError extends RuntimeException
 {
 
 }

@@ -20,11 +20,11 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Input;
  */
 class SmallInlineFiles extends SmallFiles
 {
-	protected static function upload(Connector $s3, array $options, $size, $uri)
+	protected static function upload(Connector $s3, array $options, int $size, string $uri): bool
 	{
 		// Randomize the name. Required for archive buckets where you cannot overwrite data.
 		$dotPos = strrpos($uri, '.');
-		$uri = substr($uri, 0, $dotPos) . '.' . md5(microtime(false)) . substr($uri, $dotPos);
+		$uri    = substr($uri, 0, $dotPos) . '.' . md5(microtime(false)) . substr($uri, $dotPos);
 
 		// Create some random data to upload
 		$sourceData = self::getRandomData($size);

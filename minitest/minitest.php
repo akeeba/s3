@@ -26,9 +26,9 @@ $autoloader = require_once(__DIR__ . '/../vendor/autoload.php');
 // Add the minitest PSR-4 path map to Composer's autoloader
 $autoloader->addPsr4('Akeeba\\MiniTest\\', __DIR__);
 
-function getAllTestClasses()
+function getAllTestClasses(): array
 {
-	static $testClasses = array();
+	static $testClasses = [];
 
 	if (!empty($testClasses))
 	{
@@ -66,16 +66,16 @@ function getAllTestClasses()
 	return $testClasses;
 }
 
-function getTestMethods($className)
+function getTestMethods(string $className): array
 {
-	static $classMethodMap = array();
+	static $classMethodMap = [];
 
 	if (isset($classMethodMap[$className]))
 	{
 		return $classMethodMap[$className];
 	}
 
-	$classMethodMap[$className] = array();
+	$classMethodMap[$className] = [];
 
 	if (!class_exists($className))
 	{
@@ -105,7 +105,7 @@ function getTestMethods($className)
 			return false;
 		}
 
-		if (in_array($method, array('setup', 'teardown')))
+		if (in_array($method, ['setup', 'teardown']))
 		{
 			return false;
 		}
@@ -116,8 +116,13 @@ function getTestMethods($className)
 	return $classMethodMap[$className];
 }
 
-function simplifyClassName($className)
+function simplifyClassName(?string $className): string
 {
+	if (empty($className))
+	{
+		return '';
+	}
+
 	$namespace = __NAMESPACE__ . '\\Test\\';
 
 	if (strpos($className, $namespace) === 0)
@@ -150,10 +155,10 @@ foreach ($testConfigurations as $description => $setup)
 	// Extract the configuration options
 	if (!isset($setup['configuration']))
 	{
-		$setup['configuration'] = array();
+		$setup['configuration'] = [];
 	}
 
-	$configOptions = array_merge(array(
+	$configOptions = array_merge([
 		'access'      => DEFAULT_ACCESS_KEY,
 		'secret'      => DEFAULT_SECRET_KEY,
 		'region'      => DEFAULT_REGION,
@@ -163,7 +168,7 @@ foreach ($testConfigurations as $description => $setup)
 		'path_access' => DEFAULT_PATH_ACCESS,
 		'ssl'         => DEFAULT_SSL,
 		'endpoint'    => null,
-	), $setup['configuration']);
+	], $setup['configuration']);
 
 	// Extract the test classes/methods to run
 	if (!isset($setup['tests']))
@@ -214,12 +219,12 @@ foreach ($testConfigurations as $description => $setup)
 			}
 
 			$testInfo = array_map(function ($method) use ($className) {
-				return array($className, $method);
+				return [$className, $method];
 			}, getTestMethods($className));
 		}
 		else
 		{
-			list($className, $method) = $testInfo;
+			[$className, $method] = $testInfo;
 
 			if (!class_exists($className))
 			{
@@ -235,9 +240,9 @@ foreach ($testConfigurations as $description => $setup)
 				continue;
 			}
 
-			$testInfo = array(
-				array($className, $method),
-			);
+			$testInfo = [
+				[$className, $method],
+			];
 		}
 
 		$firstOne            = false;
@@ -254,18 +259,18 @@ foreach ($testConfigurations as $description => $setup)
 
 		if ($firstOne)
 		{
-			list($className,) = $firstOne;
+			[$className,] = $firstOne;
 
 			if ($className)
 			{
-				$callableSetup    = array($className, 'setup');
-				$callableTeardown = array($className, 'teardown');
+				$callableSetup    = [$className, 'setup'];
+				$callableTeardown = [$className, 'teardown'];
 			}
 		}
 
 		if (is_callable($callableSetup))
 		{
-			list($classNameSetup, $method) = $callableSetup;
+			[$classNameSetup, $method] = $callableSetup;
 			$simplifiedClassname = simplifyClassName($classNameSetup);
 			echo "  ⏱ Preparing {$simplifiedClassname}:{$method}…";
 			call_user_func($callableSetup, $s3Connector, $configOptions);
@@ -275,7 +280,7 @@ foreach ($testConfigurations as $description => $setup)
 		foreach ($testInfo as $callable)
 		{
 			$total++;
-			list($className, $method) = $callable;
+			[$className, $method] = $callable;
 
 			if (!class_exists($className))
 			{
@@ -298,7 +303,7 @@ foreach ($testConfigurations as $description => $setup)
 
 			try
 			{
-				$result = call_user_func(array($className, $method), $s3Connector, $configOptions);
+				$result = call_user_func([$className, $method], $s3Connector, $configOptions);
 			}
 			catch (Exception $e)
 			{
@@ -336,7 +341,7 @@ foreach ($testConfigurations as $description => $setup)
 
 		if (is_callable($callableTeardown))
 		{
-			list($className, $method) = $callableSetup;
+			[$className, $method] = $callableSetup;
 			echo "  ⏱ Tearing down {$className}:{$method}…";
 			call_user_func($callableTeardown, $s3Connector, $configOptions);
 			echo "\r     Teared down {$className}   " . PHP_EOL;
@@ -389,41 +394,3 @@ if ($broken > 0)
 }
 
 echo "✅ PASSED" . PHP_EOL;
-
-exit(0);
-
-function uploadSmall(Connector $s3, $localFile, $bucket, $remoteFile)
-{
-	$fileInput = Input::createFromFile($localFile);
-
-	$s3->putObject($fileInput, $bucket, $remoteFile);
-}
-
-function uploadBig(Connector $s3, $localFile, $bucket, $remoteFile)
-{
-	$fileInput = Input::createFromFile($localFile);
-
-	$s3->uploadMultipart($fileInput, $bucket, $remoteFile);
-}
-
-function downloadAndVerifySmall(Connector $s3, $localFile, $bucket, $remoteFile)
-{
-	$rawData = file_get_contents($localFile);
-	$result  = $s3->getObject($bucket, $remoteFile, false);
-
-	return $result === $rawData;
-}
-
-function downloadAndVerifyBig(Connector $s3, $localFile, $bucket, $remoteFile)
-{
-	$tempPath = tempnam(__DIR__, 'as3');
-	$s3->getObject($bucket, $remoteFile, $tempPath);
-
-	$localHash  = hash_file('sha256', $localFile);
-	$remoteHash = hash_file('sha256', $tempPath);
-
-	@unlink($tempPath);
-
-	return $localHash === $remoteHash;
-}
-

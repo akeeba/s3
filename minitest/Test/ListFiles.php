@@ -16,7 +16,7 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Input;
 
 class ListFiles extends AbstractTest
 {
-	private static $paths = array(
+	private static $paths = [
 		'listtest_one.dat',
 		'listtest_two.dat',
 		'listtest_three.dat',
@@ -30,9 +30,9 @@ class ListFiles extends AbstractTest
 		'list_deeper/listtest_deeper/seven.dat',
 		'list_deeper/listtest_deeper/eight.dat',
 		'spam.dat',
-	);
+	];
 
-	public static function setup(Connector $s3, array $options)
+	public static function setup(Connector $s3, array $options): void
 	{
 		$data = self::getRandomData(self::TEN_KB);
 
@@ -50,7 +50,7 @@ class ListFiles extends AbstractTest
 		}
 	}
 
-	public static function teardown(Connector $s3, array $options)
+	public static function teardown(Connector $s3, array $options): void
 	{
 		foreach (self::$paths as $uri)
 		{
@@ -65,7 +65,7 @@ class ListFiles extends AbstractTest
 		}
 	}
 
-	public static function testGetAll(Connector $s3, array $options)
+	public static function testGetAll(Connector $s3, array $options): bool
 	{
 		$listing = $s3->getBucket($options['bucket'], 'listtest_');
 
@@ -97,7 +97,7 @@ class ListFiles extends AbstractTest
 		return true;
 	}
 
-	public static function testGetContinue(Connector $s3, array $options)
+	public static function testGetContinue(Connector $s3, array $options): bool
 	{
 		$listing = $s3->getBucket($options['bucket'], 'listtest_', null, 1);
 
@@ -137,7 +137,7 @@ class ListFiles extends AbstractTest
 		return true;
 	}
 
-	public static function testGetSubdirectoryFiles(Connector $s3, array $options)
+	public static function testGetSubdirectoryFiles(Connector $s3, array $options): bool
 	{
 		$listing = $s3->getBucket($options['bucket'], 'list_deeper/test_');
 
@@ -170,7 +170,7 @@ class ListFiles extends AbstractTest
 		return true;
 	}
 
-	public static function testGetSubdirectoryFilesWithContinue(Connector $s3, array $options)
+	public static function testGetSubdirectoryFilesWithContinue(Connector $s3, array $options): bool
 	{
 		$listing = $s3->getBucket($options['bucket'], 'list_deeper/test_', null, 1);
 
@@ -214,7 +214,7 @@ class ListFiles extends AbstractTest
 		return true;
 	}
 
-	public static function testListWithPrefixSharedWithFolder(Connector $s3, array $options)
+	public static function testListWithPrefixSharedWithFolder(Connector $s3, array $options): bool
 	{
 		/**
 		 * The prefix list_deeper/listtest_ matches BOTH keys (files) and common prefixes (folders).
@@ -265,7 +265,7 @@ class ListFiles extends AbstractTest
 		return true;
 	}
 
-	public static function testCommonPrefixes(Connector $s3, array $options)
+	public static function testCommonPrefixes(Connector $s3, array $options): bool
 	{
 		$listing = $s3->getBucket($options['bucket'], 'list_deeper/listtest_', null, null, '/', true);
 
