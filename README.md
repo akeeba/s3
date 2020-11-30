@@ -10,6 +10,12 @@ This code was originally based on [S3.php written by Donovan Schonknecht](http:/
 
 This software is distributed under the GNU General Public License version 3 or, at your option, any later version published by the Free Software Foundation (FSF). In short, it's "GPLv3+".
 
+## Important note about version 2
+
+Akeeba Amazon S3 Connector version 2 has dropped support for PPH 5.3 to 7.0 inclusive. It is only compatible with PHP 7.1 or later, up to and including PHP 8.0.
+
+The most significant change in this version is that all methods use scalar type hints for parameters and return values. This _may_ break existing consumers which relied on implicit type conversion e.g. passing strings containing integer values instead of _actual_ integer values.
+
 ## Using the connector
 
 ### Get a connector object
