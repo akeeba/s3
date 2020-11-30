@@ -30,8 +30,15 @@ define('DEFAULT_SSL', true);
  * This is the main test suite
  */
 $standardTests = array(
+	'BucketsList',
+	'BucketLocation',
 	'SmallFiles',
 	'SmallInlineFiles',
+	'SignedURLs',
+	'StorageClasses',
+	'ListFiles',
+	'BigFiles',
+	'Multipart',
 );
 
 /**

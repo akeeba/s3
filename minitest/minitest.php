@@ -116,6 +116,18 @@ function getTestMethods($className)
 	return $classMethodMap[$className];
 }
 
+function simplifyClassName($className)
+{
+	$namespace = __NAMESPACE__ . '\\Test\\';
+
+	if (strpos($className, $namespace) === 0)
+	{
+		return substr($className, strlen($namespace));
+	}
+
+	return $className;
+}
+
 if (!file_exists(__DIR__ . '/config.php'))
 {
 	die ('Please rename config.dist.php to config.php and customise it before running the mini test suite.');
@@ -228,10 +240,11 @@ foreach ($testConfigurations as $description => $setup)
 			);
 		}
 
-		$firstOne = false;
-		$className        = null;
-		$callableSetup    = null;
-		$callableTeardown = null;
+		$firstOne            = false;
+		$className           = null;
+		$callableSetup       = null;
+		$callableTeardown    = null;
+		$simplifiedClassname = simplifyClassName($className);
 
 		if (!empty($testInfo))
 		{
@@ -252,10 +265,11 @@ foreach ($testConfigurations as $description => $setup)
 
 		if (is_callable($callableSetup))
 		{
-			list($className, $method) = $callableSetup;
-			echo "  ⏱ Preparing {$className}:{$method}…";
+			list($classNameSetup, $method) = $callableSetup;
+			$simplifiedClassname = simplifyClassName($classNameSetup);
+			echo "  ⏱ Preparing {$simplifiedClassname}:{$method}…";
 			call_user_func($callableSetup, $s3Connector, $configOptions);
-			echo "\r     Prepared {$className}   " . PHP_EOL;
+			echo "\r     Prepared {$simplifiedClassname}   " . PHP_EOL;
 		}
 
 		foreach ($testInfo as $callable)
@@ -279,7 +293,7 @@ foreach ($testConfigurations as $description => $setup)
 				continue;
 			}
 
-			echo "  ⏱ {$className}:{$method}…";
+			echo "  ⏱ {$simplifiedClassname}:{$method}…";
 			$errorException = null;
 
 			try
@@ -292,7 +306,7 @@ foreach ($testConfigurations as $description => $setup)
 				$errorException = $e;
 			}
 
-			echo "\r  " . ($result ? '✔' : '🚨') . " {$className}:{$method}  " . PHP_EOL;
+			echo "\r  " . ($result ? '✔' : '🚨') . " {$simplifiedClassname}:{$method}  " . PHP_EOL;
 
 			if ($result)
 			{

@@ -417,7 +417,7 @@ class Request
 			 */
 			$isAmazonS3 = (substr($this->headers['Host'], -14) == '.amazonaws.com') ||
 				substr($this->headers['Host'], -16) == 'amazonaws.com.cn';
-			$tooManyDots = substr_count($this->headers['Host'], '.') > 3;
+			$tooManyDots = substr_count($this->headers['Host'], '.') > 4;
 
 			$verifyHost = ($isAmazonS3 && $tooManyDots) ? 0 : 2;
 

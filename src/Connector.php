@@ -814,6 +814,11 @@ class Connector
 
 		$request->setHeader('Content-Length', $input->getSize());
 
+		if ($input->getInputType() === Input::INPUT_DATA)
+		{
+			$request->setHeader('Content-Type', "application/x-www-form-urlencoded");
+		}
+
 		$response = $request->getResponse();
 
 		if ($response->code !== 200)

@@ -20,8 +20,18 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Input;
  */
 class SmallFiles extends AbstractTest
 {
+	/**
+	 * Should I download the file after uploading it to test for contents consistency?
+	 *
+	 * @var bool
+	 */
 	protected static $downloadAfter = true;
 
+	/**
+	 * Should I delete the uploaded file after the test case is done?
+	 *
+	 * @var bool
+	 */
 	protected static $deleteRemote = true;
 
 	public static function upload10KbRoot(Connector $s3, array $options)

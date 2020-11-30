@@ -22,6 +22,8 @@ abstract class AbstractTest
 
 	const ONE_MB = 1048576;
 
+	const FIVE_MB = 5242880;
+
 	const SIX_MB = 6291456;
 
 	const TEN_MB = 10485760;
