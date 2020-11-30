@@ -29,7 +29,7 @@ define('DEFAULT_SSL', true);
  *
  * This is the main test suite
  */
-$standardTests = array(
+$standardTests = [
 	'BucketsList',
 	'BucketLocation',
 	'SmallFiles',
@@ -39,27 +39,27 @@ $standardTests = array(
 	'ListFiles',
 	'BigFiles',
 	'Multipart',
-);
+];
 
 /**
  * Tests for key pairs or buckets which do NOT allow us to delete, but DO allow us to write and read data
  *
  * Example: archival buckets
  */
-$noDeleteTests = array(
+$noDeleteTests = [
 	'SmallFilesNoDelete',
 	'SmallInlineFilesNoDelete',
-);
+];
 
 /**
  * Tests for key pairs which do NOT allow us to read, but DO allow us to write/delete
  *
  * Example: write-only key pairs per my documentation information from 2011 :)
  */
-$writeOnlyTests = array(
+$writeOnlyTests = [
 	'SmallFilesOnlyUpload',
 	'SmallInlineFilesOnlyUpload',
-);
+];
 
 /**
  * These are the individual test configurations.
@@ -70,7 +70,7 @@ $writeOnlyTests = array(
  * * **tests**          The names of the test classes to execute. Use the format ['classname', 'method'] to execute
  *                      specific test methods only.
  */
-$testConfigurations = array(
+$testConfigurations = [
 // Format of each
 //	'Description of this configuration' => array(
 //		'configuration' => array(
@@ -117,53 +117,53 @@ $testConfigurations = array(
 	 * - Buckets with international letters
 	 * - Access from within EC2
 	 */
-	'Global key, v4, DNS, single stack' => array(
-		'configuration' => array(
-			'signature' => 'v4',
-			'dualstack' => false,
+	'Global key, v4, DNS, single stack'  => [
+		'configuration' => [
+			'signature'   => 'v4',
+			'dualstack'   => false,
 			'path_access' => false,
-		),
-		'tests' => $standardTests
-	),
-	'Global key, v4, DNS, dual stack' => array(
-		'configuration' => array(
-			'signature' => 'v4',
-			'dualstack' => true,
+		],
+		'tests'         => $standardTests,
+	],
+	'Global key, v4, DNS, dual stack'    => [
+		'configuration' => [
+			'signature'   => 'v4',
+			'dualstack'   => true,
 			'path_access' => false,
-		),
-		'tests' => $standardTests
-	),
-	'Global key, v4, path, single stack' => array(
-		'configuration' => array(
-			'signature' => 'v4',
-			'dualstack' => false,
+		],
+		'tests'         => $standardTests,
+	],
+	'Global key, v4, path, single stack' => [
+		'configuration' => [
+			'signature'   => 'v4',
+			'dualstack'   => false,
 			'path_access' => true,
-		),
-		'tests' => $standardTests
-	),
-	'Global key, v4, path, dual stack' => array(
-		'configuration' => array(
-			'signature' => 'v4',
-			'dualstack' => true,
+		],
+		'tests'         => $standardTests,
+	],
+	'Global key, v4, path, dual stack'   => [
+		'configuration' => [
+			'signature'   => 'v4',
+			'dualstack'   => true,
 			'path_access' => true,
-		),
-		'tests' => $standardTests
-	),
+		],
+		'tests'         => $standardTests,
+	],
 
-	'Global key, v2, DNS, single stack' => array(
-		'configuration' => array(
-			'signature' => 'v2',
-			'dualstack' => false,
+	'Global key, v2, DNS, single stack' => [
+		'configuration' => [
+			'signature'   => 'v2',
+			'dualstack'   => false,
 			'path_access' => false,
-		),
-		'tests' => $standardTests
-	),
-	'Global key, v2, DNS, dual stack' => array(
-		'configuration' => array(
-			'signature' => 'v2',
-			'dualstack' => true,
+		],
+		'tests'         => $standardTests,
+	],
+	'Global key, v2, DNS, dual stack'   => [
+		'configuration' => [
+			'signature'   => 'v2',
+			'dualstack'   => true,
 			'path_access' => false,
-		),
-		'tests' => $standardTests
-	),
-);
+		],
+		'tests'         => $standardTests,
+	],
+];

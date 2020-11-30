@@ -12,9 +12,11 @@ namespace Akeeba\Engine\Postproc\Connector\S3v4\Exception;
 // Protection against direct access
 defined('AKEEBAENGINE') or die();
 
+use LogicException;
+
 /**
  * Invalid magic property name
  */
-class PropertyNotFound extends \LogicException
+class PropertyNotFound extends LogicException
 {
 }

@@ -51,9 +51,9 @@ class Connector
 	 *
 	 * @return  void
 	 *
-	 * @throws  CannotPutFile  If the upload is not possible
+	 * @throws CannotPutFile If the upload is not possible
 	 */
-	public function putObject(Input $input, $bucket, $uri, $acl = Acl::ACL_PRIVATE, array $requestHeaders = array())
+	public function putObject(Input $input, string $bucket, string $uri, string $acl = Acl::ACL_PRIVATE, array $requestHeaders = []): void
 	{
 		$request = new Request('PUT', $bucket, $uri, $this->configuration);
 		$request->setInput($input);
@@ -122,7 +122,7 @@ class Connector
 							continue;
 						}
 
-						list($junk, $stupidAmazonDefinedContentLength) = explode(":", $line);
+						[$junk, $stupidAmazonDefinedContentLength] = explode(":", $line);
 
 						if (strpos($stupidAmazonDefinedContentLength, ',') !== false)
 						{
@@ -152,18 +152,16 @@ class Connector
 	/**
 	 * Get (download) an object
 	 *
-	 * @param   string  $bucket  Bucket name
-	 * @param   string  $uri     Object URI
-	 * @param   mixed   $saveTo  Filename or resource to write to
-	 * @param   int     $from    Start of the download range, null to download the entire object
-	 * @param   int     $to      End of the download range, null to download the entire object
+	 * @param   string                $bucket  Bucket name
+	 * @param   string                $uri     Object URI
+	 * @param   string|resource|null  $saveTo  Filename or resource to write to
+	 * @param   int|null              $from    Start of the download range, null to download the entire object
+	 * @param   int|null              $to      End of the download range, null to download the entire object
 	 *
-	 * @return  void|string  No return if $saveTo is specified; data as string otherwise
+	 * @return  string|null  No return if $saveTo is specified; data as string otherwise
 	 *
-	 * @throws  CannotOpenFileForWrite
-	 * @throws  CannotGetFile
 	 */
-	public function getObject($bucket, $uri, $saveTo = false, $from = null, $to = null)
+	public function getObject(string $bucket, string $uri, $saveTo = null, ?int $from = null, ?int $to = null): ?string
 	{
 		$request = new Request('GET', $bucket, $uri, $this->configuration);
 
@@ -230,7 +228,7 @@ class Connector
 	 *
 	 * @return  void
 	 */
-	public function deleteObject($bucket, $uri)
+	public function deleteObject(string $bucket, string $uri): void
 	{
 		$request  = new Request('DELETE', $bucket, $uri, $this->configuration);
 		$response = $request->getResponse();
@@ -256,14 +254,14 @@ class Connector
 	/**
 	 * Get a query string authenticated URL
 	 *
-	 * @param   string   $bucket    Bucket name
-	 * @param   string   $uri       Object URI
-	 * @param   integer  $lifetime  Lifetime in seconds
-	 * @param   boolean  $https     Use HTTPS ($hostBucket should be false for SSL verification)?
+	 * @param   string    $bucket    Bucket name
+	 * @param   string    $uri       Object URI
+	 * @param   int|null  $lifetime  Lifetime in seconds
+	 * @param   bool      $https     Use HTTPS ($hostBucket should be false for SSL verification)?
 	 *
 	 * @return  string
 	 */
-	public function getAuthenticatedURL($bucket, $uri, $lifetime = null, $https = false)
+	public function getAuthenticatedURL(string $bucket, string $uri, ?int $lifetime = null, bool $https = false): string
 	{
 		// Get a request from the URI and bucket
 		$questionmarkPos = strpos($uri, '?');
@@ -342,7 +340,7 @@ class Connector
 	 *
 	 * @return  string
 	 */
-	public function getBucketLocation($bucket)
+	public function getBucketLocation(string $bucket): string
 	{
 		$request = new Request('GET', $bucket, '', $this->configuration);
 		$request->setParameter('location', null);
@@ -394,16 +392,16 @@ class Connector
 	 *
 	 * If maxKeys is null this method will loop through truncated result sets
 	 *
-	 * @param   string   $bucket                Bucket name
-	 * @param   string   $prefix                Prefix (directory)
-	 * @param   string   $marker                Marker (last file listed)
-	 * @param   string   $maxKeys               Maximum number of keys ("files" and "directories") to return
-	 * @param   string   $delimiter             Delimiter, typically "/"
-	 * @param   boolean  $returnCommonPrefixes  Set to true to return CommonPrefixes
+	 * @param   string       $bucket                Bucket name
+	 * @param   string|null  $prefix                Prefix (directory)
+	 * @param   string|null  $marker                Marker (last file listed)
+	 * @param   int|null     $maxKeys               Maximum number of keys ("files" and "directories") to return
+	 * @param   string       $delimiter             Delimiter, typically "/"
+	 * @param   bool         $returnCommonPrefixes  Set to true to return CommonPrefixes
 	 *
 	 * @return  array
 	 */
-	public function getBucket($bucket, $prefix = null, $marker = null, $maxKeys = null, $delimiter = '/', $returnCommonPrefixes = false)
+	public function getBucket(string $bucket, ?string $prefix = null, ?string $marker = null, ?int $maxKeys = null, string $delimiter = '/', bool $returnCommonPrefixes = false): array
 	{
 		$request = new Request('GET', $bucket, '', $this->configuration);
 
@@ -445,7 +443,7 @@ class Connector
 			);
 		}
 
-		$results = array();
+		$results = [];
 
 		$nextMarker = null;
 
@@ -453,12 +451,12 @@ class Connector
 		{
 			foreach ($response->body->Contents as $c)
 			{
-				$results[(string) $c->Key] = array(
+				$results[(string) $c->Key] = [
 					'name' => (string) $c->Key,
 					'time' => strtotime((string) $c->LastModified),
 					'size' => (int) $c->Size,
 					'hash' => substr((string) $c->ETag, 1, -1),
-				);
+				];
 
 				$nextMarker = (string) $c->Key;
 			}
@@ -468,7 +466,7 @@ class Connector
 		{
 			foreach ($response->body->CommonPrefixes as $c)
 			{
-				$results[(string) $c->Prefix] = array('prefix' => (string) $c->Prefix);
+				$results[(string) $c->Prefix] = ['prefix' => (string) $c->Prefix];
 			}
 		}
 
@@ -523,12 +521,12 @@ class Connector
 				{
 					foreach ($response->body->Contents as $c)
 					{
-						$results[(string) $c->Key] = array(
+						$results[(string) $c->Key] = [
 							'name' => (string) $c->Key,
 							'time' => strtotime((string) $c->LastModified),
 							'size' => (int) $c->Size,
 							'hash' => substr((string) $c->ETag, 1, -1),
-						);
+						];
 
 						$nextMarker = (string) $c->Key;
 					}
@@ -538,7 +536,7 @@ class Connector
 				{
 					foreach ($response->body->CommonPrefixes as $c)
 					{
-						$results[(string) $c->Prefix] = array('prefix' => (string) $c->Prefix);
+						$results[(string) $c->Prefix] = ['prefix' => (string) $c->Prefix];
 					}
 				}
 
@@ -572,11 +570,11 @@ class Connector
 	/**
 	 * Get a list of buckets
 	 *
-	 * @param   boolean  $detailed  Returns detailed bucket list when true
+	 * @param   bool  $detailed  Returns detailed bucket list when true
 	 *
 	 * @return  array
 	 */
-	public function listBuckets($detailed = false)
+	public function listBuckets(bool $detailed = false): array
 	{
 		// When listing buckets with the AWSv4 signature method we MUST set the region to us-east-1. Don't ask...
 		$configuration = clone $this->configuration;
@@ -601,7 +599,7 @@ class Connector
 			);
 		}
 
-		$results = array();
+		$results = [];
 
 		if (!isset($response->body->Buckets))
 		{
@@ -612,20 +610,20 @@ class Connector
 		{
 			if (isset($response->body->Owner, $response->body->Owner->ID, $response->body->Owner->DisplayName))
 			{
-				$results['owner'] = array(
+				$results['owner'] = [
 					'id'   => (string) $response->body->Owner->ID,
 					'name' => (string) $response->body->Owner->DisplayName,
-				);
+				];
 			}
 
-			$results['buckets'] = array();
+			$results['buckets'] = [];
 
 			foreach ($response->body->Buckets->Bucket as $b)
 			{
-				$results['buckets'][] = array(
+				$results['buckets'][] = [
 					'name' => (string) $b->Name,
 					'time' => strtotime((string) $b->CreationDate),
-				);
+				];
 			}
 		}
 		else
@@ -650,7 +648,7 @@ class Connector
 	 *
 	 * @return  string  The upload session ID (UploadId)
 	 */
-	public function startMultipart(Input $input, $bucket, $uri, $acl = Acl::ACL_PRIVATE, $requestHeaders = array())
+	public function startMultipart(Input $input, string $bucket, string $uri, string $acl = Acl::ACL_PRIVATE, array $requestHeaders = []): string
 	{
 		$request = new Request('POST', $bucket, $uri, $this->configuration);
 		$request->setParameter('uploads', '');
@@ -711,7 +709,7 @@ class Connector
 	 *
 	 * @return  null|string  The ETag of the upload part of null if we have ran out of parts to upload
 	 */
-	public function uploadMultipart(Input $input, $bucket, $uri, $requestHeaders = array(), $chunkSize = 5242880)
+	public function uploadMultipart(Input $input, string $bucket, string $uri, array $requestHeaders = [], int $chunkSize = 5242880): ?string
 	{
 		if ($chunkSize < 5242880)
 		{
@@ -849,7 +847,7 @@ class Connector
 							continue;
 						}
 
-						list($junk, $stupidAmazonDefinedContentLength) = explode(":", $line);
+						[$junk, $stupidAmazonDefinedContentLength] = explode(":", $line);
 
 						if (strpos($stupidAmazonDefinedContentLength, ',') !== false)
 						{
@@ -888,7 +886,7 @@ class Connector
 	 *
 	 * @return  void
 	 */
-	public function finalizeMultipart(Input $input, $bucket, $uri)
+	public function finalizeMultipart(Input $input, string $bucket, string $uri): void
 	{
 		$etags    = $input->getEtags();
 		$UploadID = $input->getUploadID();
@@ -956,7 +954,7 @@ class Connector
 	 *
 	 * @return  Configuration
 	 */
-	public function getConfiguration()
+	public function getConfiguration(): Configuration
 	{
 		return $this->configuration;
 	}

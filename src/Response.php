@@ -11,6 +11,7 @@ namespace Akeeba\Engine\Postproc\Connector\S3v4;
 
 use Akeeba\Engine\Postproc\Connector\S3v4\Exception\PropertyNotFound;
 use Akeeba\Engine\Postproc\Connector\S3v4\Response\Error;
+use SimpleXMLElement;
 
 // Protection against direct access
 defined('AKEEBAENGINE') or die();
@@ -18,10 +19,10 @@ defined('AKEEBAENGINE') or die();
 /**
  * Amazon S3 API response object
  *
- * @property   Error  $error    Response error object
- * @property   mixed  $body     Body data
- * @property   int    $code     Response code
- * @property   array  $headers  Any headers we may have
+ * @property   Error                        $error    Response error object
+ * @property   string|SimpleXMLElement|null $body     Body data
+ * @property   int                          $code     Response code
+ * @property   array                        $headers  Any headers we may have
  */
 class Response
 {
@@ -35,7 +36,7 @@ class Response
 	/**
 	 * Response body
 	 *
-	 * @var  \SimpleXMLElement|string|null
+	 * @var  string|SimpleXMLElement|null
 	 */
 	private $body = null;
 
@@ -51,7 +52,7 @@ class Response
 	 *
 	 * @var  array
 	 */
-	private $headers = array();
+	private $headers = [];
 
 	/**
 	 * Response constructor.
@@ -66,7 +67,7 @@ class Response
 	 *
 	 * @return  bool
 	 */
-	public function isError()
+	public function isError(): bool
 	{
 		return is_null($this->error) || $this->error->isError();
 	}
@@ -76,17 +77,17 @@ class Response
 	 *
 	 * @return  bool
 	 */
-	public function hasBody()
+	public function hasBody(): bool
 	{
 		return !empty($this->body);
 	}
 
 	/**
-	 * Get the eresponse error object
+	 * Get the response error object
 	 *
 	 * @return  Error
 	 */
-	public function getError()
+	public function getError(): Error
 	{
 		return $this->error;
 	}
@@ -96,7 +97,7 @@ class Response
 	 *
 	 * @param   Error  $error
 	 */
-	public function setError(Error $error)
+	public function setError(Error $error): void
 	{
 		$this->error = $error;
 	}
@@ -104,7 +105,14 @@ class Response
 	/**
 	 * Get the response body
 	 *
-	 * @return null|string|\SimpleXMLElement
+	 * If there is no body set up you get NULL.
+	 *
+	 * If the body is binary data (e.g. downloading a file) or other non-XML data you get a string.
+	 *
+	 * If the body was an XML string – the standard Amazon S3 REST API response type – you get a SimpleXMLElement
+	 * object.
+	 *
+	 * @return string|SimpleXMLElement|null
 	 */
 	public function getBody()
 	{
@@ -114,9 +122,9 @@ class Response
 	/**
 	 * Set the response body. If it's a string we'll try to parse it as XML.
 	 *
-	 * @param   null|string|\SimpleXMLElement  $body
+	 * @param   string|SimpleXMLElement|null  $body
 	 */
-	public function setBody($body)
+	public function setBody($body): void
 	{
 		$this->body = null;
 
@@ -130,12 +138,12 @@ class Response
 		$this->finaliseBody();
 	}
 
-	public function resetBody()
+	public function resetBody(): void
 	{
 		$this->body = null;
 	}
 
-	public function addToBody($data)
+	public function addToBody(string $data): void
 	{
 		if (empty($this->body))
 		{
@@ -145,7 +153,7 @@ class Response
 		$this->body .= $data;
 	}
 
-	public function finaliseBody()
+	public function finaliseBody(): void
 	{
 		if (!$this->hasBody())
 		{
@@ -164,7 +172,7 @@ class Response
 			$this->body = simplexml_load_string($this->body);
 		}
 
-		if (is_object($this->body) && ($this->body instanceof \SimpleXMLElement))
+		if (is_object($this->body) && ($this->body instanceof SimpleXMLElement))
 		{
 			$this->parseBody();
 		}
@@ -175,7 +183,7 @@ class Response
 	 *
 	 * @return  int
 	 */
-	public function getCode()
+	public function getCode(): int
 	{
 		return $this->code;
 	}
@@ -185,9 +193,9 @@ class Response
 	 *
 	 * @param   int  $code
 	 */
-	public function setCode($code)
+	public function setCode(int $code): void
 	{
-		$this->code = (int) $code;
+		$this->code = $code;
 	}
 
 	/**
@@ -195,7 +203,7 @@ class Response
 	 *
 	 * @return  array
 	 */
-	public function getHeaders()
+	public function getHeaders(): array
 	{
 		return $this->headers;
 	}
@@ -205,7 +213,7 @@ class Response
 	 *
 	 * @param   array  $headers
 	 */
-	public function setHeaders(array $headers)
+	public function setHeaders(array $headers): void
 	{
 		$this->headers = $headers;
 	}
@@ -214,11 +222,11 @@ class Response
 	 * Set a single header
 	 *
 	 * @param   string  $name   The header name
-	 * @param   mixed   $value  The header value
+	 * @param   string  $value  The header value
 	 *
 	 * @return  void
 	 */
-	public function setHeader($name, $value)
+	public function setHeader(string $name, string $value): void
 	{
 		$this->headers[$name] = $value;
 	}
@@ -230,7 +238,7 @@ class Response
 	 *
 	 * @return  bool  True if it exists
 	 */
-	public function hasHeader($name)
+	public function hasHeader(string $name): bool
 	{
 		return array_key_exists($name, $this->headers);
 	}
@@ -242,7 +250,7 @@ class Response
 	 *
 	 * @return  void
 	 */
-	public function unsetHeader($name)
+	public function unsetHeader(string $name): void
 	{
 		if ($this->hasHeader($name))
 		{
@@ -257,7 +265,7 @@ class Response
 	 *
 	 * @return  mixed
 	 */
-	public function __get($name)
+	public function __get(string $name)
 	{
 		switch ($name)
 		{
@@ -289,7 +297,7 @@ class Response
 	 *
 	 * @return  void
 	 */
-	public function __set($name, $value)
+	public function __set(string $name, $value): void
 	{
 		switch ($name)
 		{
@@ -317,20 +325,20 @@ class Response
 	/**
 	 * Scans the SimpleXMLElement body for errors and propagates them to the Error object
 	 */
-	protected function parseBody()
+	protected function parseBody(): void
 	{
-		if (!in_array($this->code, array(200, 204)) &&
+		if (!in_array($this->code, [200, 204]) &&
 			isset($this->body->Code, $this->body->Message)
 		)
 		{
 			$this->error = new Error(
-				(string)$this->body->Code,
-				(string)$this->body->Message
+				(string) $this->body->Code,
+				(string) $this->body->Message
 			);
 
 			if (isset($this->body->Resource))
 			{
-				$this->error->setResource((string)$this->body->Resource);
+				$this->error->setResource((string) $this->body->Resource);
 			}
 		}
 	}

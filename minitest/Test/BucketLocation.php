@@ -14,7 +14,7 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
 
 class BucketLocation extends AbstractTest
 {
-	public static function getBucketLocation(Connector $s3, array $options)
+	public static function getBucketLocation(Connector $s3, array $options): bool
 	{
 		$location = $s3->getBucketLocation($options['bucket']);
 

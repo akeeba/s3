@@ -34,41 +34,41 @@ class SmallFiles extends AbstractTest
 	 */
 	protected static $deleteRemote = true;
 
-	public static function upload10KbRoot(Connector $s3, array $options)
+	public static function upload10KbRoot(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, AbstractTest::TEN_KB, 'root_10kb.dat');
 	}
 
-	public static function upload10KbRootGreek(Connector $s3, array $options)
+	public static function upload10KbRootGreek(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, AbstractTest::TEN_KB, 'δοκιμή_10kb.dat');
 	}
 
-	public static function upload10KbFolderGreek(Connector $s3, array $options)
+	public static function upload10KbFolderGreek(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, AbstractTest::TEN_KB, 'ο_φάκελός_μου/δοκιμή_10kb.dat');
 	}
 
-	public static function upload600KbRoot(Connector $s3, array $options)
+	public static function upload600KbRoot(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, AbstractTest::SIX_HUNDRED_KB, 'root_600kb.dat');
 	}
 
-	public static function upload10KbFolder(Connector $s3, array $options)
+	public static function upload10KbFolder(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, AbstractTest::TEN_KB, 'my_folder/10kb.dat');
 	}
 
-	public static function upload600KbFolder(Connector $s3, array $options)
+	public static function upload600KbFolder(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, AbstractTest::SIX_HUNDRED_KB, 'my_folder/600kb.dat');
 	}
 
-	protected static function upload(Connector $s3, array $options, $size, $uri)
+	protected static function upload(Connector $s3, array $options, int $size, string $uri): bool
 	{
 		// Randomize the name. Required for archive buckets where you cannot overwrite data.
 		$dotPos = strrpos($uri, '.');
-		$uri = substr($uri, 0, $dotPos) . '.' . md5(microtime(false)) . substr($uri, $dotPos);
+		$uri    = substr($uri, 0, $dotPos) . '.' . md5(microtime(false)) . substr($uri, $dotPos);
 
 		// Create a file with random data
 		$sourceFile = self::createFile($size);

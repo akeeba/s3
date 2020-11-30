@@ -45,7 +45,7 @@ class Error
 	 * @param   string  $message   The error message
 	 * @param   string  $resource  The URI to the resource throwing the error
 	 *
-	 * @return  Error
+	 * @return  void
 	 */
 	function __construct($code = 0, $message = '', $resource = '')
 	{
@@ -59,7 +59,7 @@ class Error
 	 *
 	 * @return  int
 	 */
-	public function getCode()
+	public function getCode(): int
 	{
 		return $this->code;
 	}
@@ -67,11 +67,11 @@ class Error
 	/**
 	 * Set the error code
 	 *
-	 * @param  int  $code  Set to zeroo or a negative value to clear errors
+	 * @param   int  $code  Set to zeroo or a negative value to clear errors
 	 *
 	 * @return  void
 	 */
-	public function setCode($code)
+	public function setCode(int $code): void
 	{
 		if ($code <= 0)
 		{
@@ -88,7 +88,7 @@ class Error
 	 *
 	 * @return  string
 	 */
-	public function getMessage()
+	public function getMessage(): string
 	{
 		return $this->message;
 	}
@@ -96,11 +96,11 @@ class Error
 	/**
 	 * Set the error message
 	 *
-	 * @param  string  $message  The error message to set
+	 * @param   string  $message  The error message to set
 	 *
 	 * @return  void
 	 */
-	public function setMessage($message)
+	public function setMessage(string $message): void
 	{
 		$this->message = $message;
 	}
@@ -110,7 +110,7 @@ class Error
 	 *
 	 * @return  string
 	 */
-	public function getResource()
+	public function getResource(): string
 	{
 		return $this->resource;
 	}
@@ -122,7 +122,7 @@ class Error
 	 *
 	 * @return  void
 	 */
-	public function setResource($resource)
+	public function setResource(string $resource): void
 	{
 		$this->resource = $resource;
 	}
@@ -132,7 +132,7 @@ class Error
 	 *
 	 * @return  bool
 	 */
-	public function isError()
+	public function isError(): bool
 	{
 		return ($this->code > 0) || !empty($this->message);
 	}

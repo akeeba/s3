@@ -34,12 +34,12 @@ abstract class AbstractTest
 
 	const FILE_HASHING_ALGORITHM = 'sha256';
 
-	public static function setup(Connector $s3, array $options)
+	public static function setup(Connector $s3, array $options): void
 	{
 		// Runs before any test
 	}
 
-	public static function teardown(Connector $s3, array $options)
+	public static function teardown(Connector $s3, array $options): void
 	{
 		// Runs after all tests are finished
 	}
@@ -56,7 +56,7 @@ abstract class AbstractTest
 	 *
 	 * @return  string  The full path to the temporary file.
 	 */
-	protected static function createFile($size = AbstractTest::SIX_HUNDRED_KB, $blockSize = self::BLOCK_SIZE, $reuseBlock = true)
+	protected static function createFile(int $size = AbstractTest::SIX_HUNDRED_KB, int $blockSize = self::BLOCK_SIZE, bool $reuseBlock = true)
 	{
 		$tempFilePath = tempnam(self::getTempFolder(), 'as3');
 
@@ -103,7 +103,7 @@ abstract class AbstractTest
 	 *
 	 * @return  string
 	 */
-	protected static function getTempFolder()
+	protected static function getTempFolder(): string
 	{
 		$tempPath = sys_get_temp_dir();
 
@@ -133,7 +133,7 @@ abstract class AbstractTest
 	 *
 	 * @return  bool
 	 */
-	protected static function areFilesEqual($referenceFilePath, $unknownFilePath)
+	protected static function areFilesEqual(string $referenceFilePath, string $unknownFilePath): bool
 	{
 		if (!file_exists($referenceFilePath) || !file_exists($unknownFilePath))
 		{
@@ -166,7 +166,7 @@ abstract class AbstractTest
 	 *
 	 * @return  bool
 	 */
-	protected static function areStringsEqual($referenceString, $unknownString)
+	protected static function areStringsEqual(string $referenceString, string $unknownString): bool
 	{
 		return $referenceString === $unknownString;
 	}
@@ -178,7 +178,7 @@ abstract class AbstractTest
 	 *
 	 * @return  string  Your random data
 	 */
-	protected static function getRandomData($length = self::BLOCK_SIZE)
+	protected static function getRandomData(int $length = self::BLOCK_SIZE): string
 	{
 		$blockData = '';
 
@@ -230,11 +230,13 @@ abstract class AbstractTest
 		return $blockData;
 	}
 
-	protected static function assert($condition, $message)
+	protected static function assert(bool $condition, string $message): void
 	{
-		if (!$condition)
+		if ($condition)
 		{
-			throw new RuntimeException($message);
+			return;
 		}
+
+		throw new RuntimeException($message);
 	}
 }

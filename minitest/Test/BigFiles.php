@@ -57,47 +57,47 @@ class BigFiles extends AbstractTest
 	 */
 	protected static $numberOfChunks = 0;
 
-	public static function upload5MBString(Connector $s3, array $options)
+	public static function upload5MBString(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, self::FIVE_MB, 'bigtest_5mb.dat');
 	}
 
-	public static function upload6MBString(Connector $s3, array $options)
+	public static function upload6MBString(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, self::SIX_MB, 'bigtest_6mb.dat');
 	}
 
-	public static function upload10MBString(Connector $s3, array $options)
+	public static function upload10MBString(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, self::TEN_MB, 'bigtest_10mb.dat');
 	}
 
-	public static function upload11MBString(Connector $s3, array $options)
+	public static function upload11MBString(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, self::ELEVEN_MB, 'bigtest_11mb.dat');
 	}
 
-	public static function upload5MBFile(Connector $s3, array $options)
+	public static function upload5MBFile(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, self::FIVE_MB, 'bigtest_5mb.dat', false);
 	}
 
-	public static function upload6MBFile(Connector $s3, array $options)
+	public static function upload6MBFile(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, self::SIX_MB, 'bigtest_6mb.dat', false);
 	}
 
-	public static function upload10MBFile(Connector $s3, array $options)
+	public static function upload10MBFile(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, self::TEN_MB, 'bigtest_10mb.dat', false);
 	}
 
-	public static function upload11MBFile(Connector $s3, array $options)
+	public static function upload11MBFile(Connector $s3, array $options): bool
 	{
 		return self::upload($s3, $options, self::ELEVEN_MB, 'bigtest_11mb.dat', false);
 	}
 
-	protected static function upload(Connector $s3, array $options, $size, $uri, $useString = true)
+	protected static function upload(Connector $s3, array $options, int $size, string $uri, bool $useString = true): bool
 	{
 		// Randomize the name. Required for archive buckets where you cannot overwrite data.
 		$dotPos = strrpos($uri, '.');
@@ -130,7 +130,7 @@ class BigFiles extends AbstractTest
 			$uploadSession = $s3->startMultipart($input, $bucket, $uri);
 
 			// This array holds the etags of uploaded parts. Used by finalizeMultipart.
-			$eTags      = array();
+			$eTags      = [];
 			$partNumber = 1;
 
 			while (true)
@@ -149,7 +149,7 @@ class BigFiles extends AbstractTest
 				$input->setEtags($eTags);
 				$input->setPartNumber($partNumber);
 
-				$etag = $s3->uploadMultipart($input, $bucket, $uri, array(), self::$uploadChunkSize);
+				$etag = $s3->uploadMultipart($input, $bucket, $uri, [], self::$uploadChunkSize);
 
 				// If the result was null we have no more file parts to process.
 				if (is_null($etag))
