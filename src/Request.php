@@ -558,7 +558,7 @@ class Request
 	 *
 	 * @return  int  Length in bytes
 	 */
-	protected function __responseWriteCallback(&$curl, string &$data): int
+	protected function __responseWriteCallback($curl, string $data): int
 	{
 		if (in_array($this->response->code, [200, 206]) && !is_null($this->fp) && is_resource($this->fp))
 		{
@@ -573,12 +573,12 @@ class Request
 	/**
 	 * cURL header callback
 	 *
-	 * @param   resource  &$curl  cURL resource
+	 * @param   resource  $curl  cURL resource
 	 * @param   string    &$data  Data
 	 *
 	 * @return  int  Length in bytes
 	 */
-	protected function __responseHeaderCallback(&$curl, string &$data): int
+	protected function __responseHeaderCallback($curl, string $data): int
 	{
 		if (($strlen = strlen($data)) <= 2)
 		{
