@@ -332,8 +332,8 @@ class Response
 		)
 		{
 			$this->error = new Error(
-				(string) $this->body->Code,
-				(string) $this->body->Message
+				500,
+				(string) $this->body->Code . ':' . (string) $this->body->Message
 			);
 
 			if (isset($this->body->Resource))
