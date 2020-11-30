@@ -1,3 +1,5 @@
-.idea/
-000/
-vendor/
+/.idea/
+/000/
+/minitest/config.php
+/minitest/tmp
+/vendor/
