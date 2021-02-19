@@ -12,11 +12,27 @@ This software is distributed under the GNU General Public License version 3 or, 
 
 ## Important note about version 2
 
-Akeeba Amazon S3 Connector version 2 has dropped support for PPH 5.3 to 7.0 inclusive. It is only compatible with PHP 7.1 or later, up to and including PHP 8.0.
+Akeeba Amazon S3 Connector version 2 has dropped support for PHP 5.3 to 7.0 inclusive. It is only compatible with PHP 7.1 or later, up to and including PHP 8.0.
 
 The most significant change in this version is that all methods use scalar type hints for parameters and return values. This _may_ break existing consumers which relied on implicit type conversion e.g. passing strings containing integer values instead of _actual_ integer values.
 
 ## Using the connector
+
+You need to define a constant before using or referencing any class in the library:
+
+```php
+defined('AKEEBAENGINE') or define('AKEEBAENGINE', 1);
+```
+
+All library files have a line similar to
+
+```php
+defined('AKEEBAENGINE') or die();
+```
+
+to prevent direct access to the libraries files. This is intentional. The primary use case for this library is mass-distributed software which gets installed in a publicly accessible subdirectory of the web root. This line prevents any accidental path disclosure from PHP error messages if someone were to access these files directly on misconfigured servers.
+
+If you are writing a Joomla extension, especially a plugin or module, please _always_ check if the constant has already been defined before defining it yourself. Thank you! 
 
 ### Get a connector object
 
