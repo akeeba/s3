@@ -13,7 +13,7 @@
 	"prefer-stable": false,
 	"prefer-lowest": false,
 	"platform": {
-		"php": ">=5.3.4"
+		"php": ">=7.1.0"
 	},
 	"platform-dev": []
 }
