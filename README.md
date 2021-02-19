@@ -225,6 +225,23 @@ $content = $connector->getObject('mybucket', 'path/to/file.jpg', false);
 $connector->deleteObject('mybucket', 'path/to/file.jpg');
 ```
 
+### Test if an object exists
+
+```php
+try
+{
+    $headers = $connector->headObject('mybucket', 'path/to/file.jpg');
+    $exists  = true;
+}
+catch (\Akeeba\Engine\Postproc\Connector\S3v4\Exception\CannotGetFile $e)
+{
+    $headers = [];
+    $exists  = false;
+}
+```
+
+The `$headers` variable contains an array with the S3 headers returned by the [HeadObject(https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html) API call. The header keys are always in lowercase. Please note that _not all_ of the headers Amazon describes in their documentation are returned in every request.
+
 ## Configuration options
 
 The Configuration option has optional methods which can be used to enable some useful features in the connector.

@@ -221,6 +221,44 @@ class Connector
 	}
 
 	/**
+	 * Get information about an object.
+	 *
+	 * @param   string                $bucket  Bucket name
+	 * @param   string                $uri     Object URI
+	 *
+	 * @return  array  The headers returned by Amazon S3
+	 *
+	 * @throws  CannotGetFile  If the file does not exist
+	 * @see     https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html
+	 */
+	public function headObject(string $bucket, string $uri): array
+	{
+		$request = new Request('HEAD', $bucket, $uri, $this->configuration);
+
+		$response = $request->getResponse();
+
+		if (!$response->error->isError() && (($response->code !== 200) && ($response->code !== 206)))
+		{
+			$response->error = new Error(
+				$response->code,
+				"Unexpected HTTP status {$response->code}"
+			);
+		}
+
+		if ($response->error->isError())
+		{
+			throw new CannotGetFile(
+				sprintf(__METHOD__ . "({$bucket}, {$uri}): [%s] %s\n\nDebug info:\n%s",
+					$response->error->getCode(), $response->error->getMessage(), print_r($response->body, true)),
+				$response->error->getCode()
+			);
+		}
+
+		return $response->getHeaders();
+	}
+
+
+	/**
 	 * Delete an object
 	 *
 	 * @param   string  $bucket  Bucket name

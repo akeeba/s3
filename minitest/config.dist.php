@@ -33,6 +33,7 @@ $standardTests = [
 	'BucketsList',
 	'BucketLocation',
 	'SmallFiles',
+	'HeadObject',
 	'SmallInlineFiles',
 	'SignedURLs',
 	'StorageClasses',

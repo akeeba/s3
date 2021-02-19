@@ -613,6 +613,8 @@ class Request
 				break;
 
 			default:
+				$this->response->setHeader(strtolower($header), is_numeric($value) ? (int) $value : $value);
+
 				if (preg_match('/^x-amz-meta-.*$/', $header))
 				{
 					$this->setHeader($header, is_numeric($value) ? (int) $value : $value);
