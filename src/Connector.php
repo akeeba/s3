@@ -169,7 +169,7 @@ class Connector
 
 		if (!is_resource($saveTo) && is_string($saveTo))
 		{
-			$fp = @fopen($saveTo, 'wb');
+			$fp = @fopen($saveTo, 'w');
 
 			if ($fp === false)
 			{

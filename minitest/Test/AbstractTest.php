@@ -65,7 +65,7 @@ abstract class AbstractTest
 			throw new RuntimeException("Cannot create a temporary file.");
 		}
 
-		$fp = @fopen($tempFilePath, 'wb', false);
+		$fp = @fopen($tempFilePath, 'w', false);
 
 		if ($fp === false)
 		{
