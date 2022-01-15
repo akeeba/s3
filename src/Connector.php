@@ -81,7 +81,10 @@ class Connector
 
 		if (($input->getSize() <= 0) || (($input->getInputType() == Input::INPUT_DATA) && (!strlen($input->getDataReference()))))
 		{
-			throw new CannotPutFile('Missing input parameters', 0);
+			if (substr($uri, -1) !== '/')
+			{
+				throw new CannotPutFile('Missing input parameters', 0);
+			}
 		}
 
 		// We need to post with Content-Length and Content-Type, MD5 is optional
