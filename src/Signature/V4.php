@@ -10,7 +10,7 @@
 namespace Akeeba\Engine\Postproc\Connector\S3v4\Signature;
 
 // Protection against direct access
-defined('AKEEBAENGINE') or die();
+defined('AKEEBAENGINE') || die();
 
 use Akeeba\Engine\Postproc\Connector\S3v4\Signature;
 use DateTime;

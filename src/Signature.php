@@ -10,7 +10,7 @@
 namespace Akeeba\Engine\Postproc\Connector\S3v4;
 
 // Protection against direct access
-defined('AKEEBAENGINE') or die();
+defined('AKEEBAENGINE') || die();
 
 /**
  * Base class for request signing objects.

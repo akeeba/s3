@@ -10,7 +10,7 @@
 namespace Akeeba\Engine\Postproc\Connector\S3v4;
 
 // Protection against direct access
-defined('AKEEBAENGINE') or die();
+defined('AKEEBAENGINE') || die();
 
 /**
  * Defines an input source for PUT/POST requests to Amazon S3
@@ -20,17 +20,17 @@ class Input
 	/**
 	 * Input type: resource
 	 */
-	const INPUT_RESOURCE = 1;
+	public const INPUT_RESOURCE = 1;
 
 	/**
 	 * Input type: file
 	 */
-	const INPUT_FILE = 2;
+	public const INPUT_FILE = 2;
 
 	/**
 	 * Input type: raw data
 	 */
-	const INPUT_DATA = 3;
+	public const INPUT_DATA = 3;
 
 	/**
 	 * File pointer, in case we have a resource
@@ -635,7 +635,7 @@ class Input
 
 		$ext = strtolower(pathInfo($file, PATHINFO_EXTENSION));
 
-		return isset($exts[$ext]) ? $exts[$ext] : 'application/octet-stream';
+		return $exts[$ext] ?? 'application/octet-stream';
 	}
 
 	/**

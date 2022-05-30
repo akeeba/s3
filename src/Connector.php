@@ -18,7 +18,7 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Exception\CannotOpenFileForWrite;
 use Akeeba\Engine\Postproc\Connector\S3v4\Exception\CannotPutFile;
 use Akeeba\Engine\Postproc\Connector\S3v4\Response\Error;
 
-defined('AKEEBAENGINE') or die();
+defined('AKEEBAENGINE') || die();
 
 class Connector
 {
