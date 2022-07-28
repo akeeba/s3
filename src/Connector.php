@@ -209,7 +209,8 @@ class Connector
 		if ($response->error->isError())
 		{
 			throw new CannotGetFile(
-				sprintf(__METHOD__ . "({%s}, {%s}): [%s] %s\n\nDebug info:\n%s",
+				sprintf(
+					__METHOD__ . "({%s}, {%s}): [%s] %s\n\nDebug info:\n%s",
 					$bucket,
 					$uri,
 					$response->error->getCode(),
@@ -230,8 +231,8 @@ class Connector
 	/**
 	 * Get information about an object.
 	 *
-	 * @param   string                $bucket  Bucket name
-	 * @param   string                $uri     Object URI
+	 * @param   string  $bucket  Bucket name
+	 * @param   string  $uri     Object URI
 	 *
 	 * @return  array  The headers returned by Amazon S3
 	 *
@@ -255,7 +256,8 @@ class Connector
 		if ($response->error->isError())
 		{
 			throw new CannotGetFile(
-				sprintf(__METHOD__ . "({%s}, {%s}): [%s] %s\n\nDebug info:\n%s",
+				sprintf(
+					__METHOD__ . "({%s}, {%s}): [%s] %s\n\nDebug info:\n%s",
 					$bucket,
 					$uri,
 					$response->error->getCode(),
@@ -293,7 +295,8 @@ class Connector
 		if ($response->error->isError())
 		{
 			throw new CannotDeleteFile(
-				sprintf(__METHOD__ . "({%s}, {%s}): [%s] %s",
+				sprintf(
+					__METHOD__ . "({%s}, {%s}): [%s] %s",
 					$bucket,
 					$uri,
 					$response->error->getCode(),
@@ -454,167 +457,47 @@ class Connector
 	 */
 	public function getBucket(string $bucket, ?string $prefix = null, ?string $marker = null, ?int $maxKeys = null, string $delimiter = '/', bool $returnCommonPrefixes = false): array
 	{
-		$request = new Request('GET', $bucket, '', $this->configuration);
+		$internalResult = $this->internalGetBucket($bucket, $prefix, $marker, $maxKeys, $delimiter, $returnCommonPrefixes);
 
-		if (!empty($prefix))
-		{
-			$request->setParameter('prefix', $prefix);
-		}
+		/**
+		 * @var array   $objects
+		 * @var ?string $nextMarker
+		 */
+		extract($internalResult);
+		unset($internalResult);
 
-		if (!empty($marker))
-		{
-			$request->setParameter('marker', $marker);
-		}
-
-		if (!empty($maxKeys))
-		{
-			$request->setParameter('max-keys', $maxKeys);
-		}
-
-		if (!empty($delimiter))
-		{
-			$request->setParameter('delimiter', $delimiter);
-		}
-
-		$response = $request->getResponse();
-
-		if (!$response->error->isError() && $response->code !== 200)
-		{
-			$response->error = new Error(
-				$response->code,
-				"Unexpected HTTP status {$response->code}"
-			);
-		}
-
-		if ($response->error->isError())
-		{
-			throw new CannotGetBucket(
-				sprintf(__METHOD__ . "(): [%s] %s", $response->error->getCode(), $response->error->getMessage())
-			);
-		}
-
-		$results = [];
-
-		$nextMarker = null;
-
-		if ($response->hasBody() && isset($response->body->Contents))
-		{
-			foreach ($response->body->Contents as $c)
-			{
-				$results[(string) $c->Key] = [
-					'name' => (string) $c->Key,
-					'time' => strtotime((string) $c->LastModified),
-					'size' => (int) $c->Size,
-					'hash' => substr((string) $c->ETag, 1, -1),
-				];
-
-				$nextMarker = (string) $c->Key;
-			}
-		}
-
-		if ($returnCommonPrefixes && $response->hasBody() && isset($response->body->CommonPrefixes))
-		{
-			foreach ($response->body->CommonPrefixes as $c)
-			{
-				$results[(string) $c->Prefix] = ['prefix' => (string) $c->Prefix];
-			}
-		}
-
-		if ($response->hasBody() && isset($response->body->IsTruncated) &&
-			((string) $response->body->IsTruncated == 'false')
-		)
-		{
-			return $results;
-		}
-
-		if ($response->hasBody() && isset($response->body->NextMarker))
-		{
-			$nextMarker = (string) $response->body->NextMarker;
-		}
-
-		// Is it a truncated result?
-		$isTruncated = ($nextMarker !== null) && ((string) $response->body->IsTruncated == 'true');
-		// Is this a truncated result and no maxKeys specified?
-		$isTruncatedAndNoMaxKeys = ($maxKeys == null) && $isTruncated;
-		// Is this a truncated result with less keys than the specified maxKeys; and common prefixes found but not returned to the caller?
-		$isTruncatedAndNeedsContinue = ($maxKeys != null) && $isTruncated && (count($results) < $maxKeys);
-
-		// Loop through truncated results if maxKeys isn't specified
-		if ($isTruncatedAndNoMaxKeys || $isTruncatedAndNeedsContinue)
+		// Loop through truncated results if maxKeys isn't specified or we don't have enough object records yet.
+		if ($nextMarker !== null && ($maxKeys === null || count($objects) < $maxKeys))
 		{
 			do
 			{
-				$request = new Request('GET', $bucket, '', $this->configuration);
+				$internalResult = $this->internalGetBucket($bucket, $prefix, $nextMarker, $maxKeys, $delimiter, $returnCommonPrefixes);
 
-				if (!empty($prefix))
-				{
-					$request->setParameter('prefix', $prefix);
-				}
+				$nextMarker = $internalResult['nextMarker'];
+				$objects    = array_merge($objects, $internalResult['objects']);
 
-				$request->setParameter('marker', $nextMarker);
+				unset($internalResult);
 
-				if (!empty($delimiter))
-				{
-					$request->setParameter('delimiter', $delimiter);
-				}
-
-				try
-				{
-					$response = $request->getResponse();
-				}
-				catch (\Exception $e)
+				// If the last call did not return a nextMarker I am done iterating.
+				if ($nextMarker === null)
 				{
 					break;
 				}
 
-				if ($response->hasBody() && isset($response->body->Contents))
+				// If we have maxKeys AND the number of objects is at least this many I am done iterating.
+				if ($maxKeys !== null && count($objects) >= $maxKeys)
 				{
-					foreach ($response->body->Contents as $c)
-					{
-						$results[(string) $c->Key] = [
-							'name' => (string) $c->Key,
-							'time' => strtotime((string) $c->LastModified),
-							'size' => (int) $c->Size,
-							'hash' => substr((string) $c->ETag, 1, -1),
-						];
-
-						$nextMarker = (string) $c->Key;
-					}
+					break;
 				}
-
-				if ($returnCommonPrefixes && $response->hasBody() && isset($response->body->CommonPrefixes))
-				{
-					foreach ($response->body->CommonPrefixes as $c)
-					{
-						$results[(string) $c->Prefix] = ['prefix' => (string) $c->Prefix];
-					}
-				}
-
-				if ($response->hasBody() && isset($response->body->NextMarker))
-				{
-					$nextMarker = (string) $response->body->NextMarker;
-				}
-
-				$continueCondition = false;
-
-				if ($isTruncatedAndNoMaxKeys)
-				{
-					$continueCondition = !$response->error->isError() && $isTruncated;
-				}
-
-				if ($isTruncatedAndNeedsContinue)
-				{
-					$continueCondition = !$response->error->isError() && $isTruncated && (count($results) < $maxKeys);
-				}
-			} while ($continueCondition);
+			} while (true);
 		}
 
-		if (!is_null($maxKeys))
+		if ($maxKeys !== null)
 		{
-			$results = array_splice($results, 0, $maxKeys);
+			return array_splice($objects, 0, $maxKeys);
 		}
 
-		return $results;
+		return $objects;
 	}
 
 	/**
@@ -740,7 +623,8 @@ class Connector
 		if ($response->error->isError())
 		{
 			throw new CannotPutFile(
-				sprintf(__METHOD__ . "(): [%s] %s\n\nDebug info:\n%s",
+				sprintf(
+					__METHOD__ . "(): [%s] %s\n\nDebug info:\n%s",
 					$response->error->getCode(),
 					$response->error->getMessage(),
 					print_r($response->body, true)
@@ -1010,5 +894,91 @@ class Connector
 	public function getConfiguration(): Configuration
 	{
 		return $this->configuration;
+	}
+
+	private function internalGetBucket(string $bucket, ?string $prefix = null, ?string $marker = null, ?int $maxKeys = null, string $delimiter = '/', bool $returnCommonPrefixes = false): array
+	{
+		$request = new Request('GET', $bucket, '', $this->configuration);
+
+		if (!empty($prefix))
+		{
+			$request->setParameter('prefix', $prefix);
+		}
+
+		if (!empty($marker))
+		{
+			$request->setParameter('marker', $marker);
+		}
+
+		if (!empty($maxKeys))
+		{
+			$request->setParameter('max-keys', $maxKeys);
+		}
+
+		if (!empty($delimiter))
+		{
+			$request->setParameter('delimiter', $delimiter);
+		}
+
+		$response = $request->getResponse();
+
+		if (!$response->error->isError() && $response->code !== 200)
+		{
+			$response->error = new Error(
+				$response->code,
+				"Unexpected HTTP status {$response->code}"
+			);
+		}
+
+		if ($response->error->isError())
+		{
+			throw new CannotGetBucket(
+				sprintf(__METHOD__ . "(): [%s] %s", $response->error->getCode(), $response->error->getMessage())
+			);
+		}
+
+		$results = [
+			'objects'    => [],
+			'nextMarker' => null,
+		];
+
+		if ($response->hasBody() && isset($response->body->Contents))
+		{
+			foreach ($response->body->Contents as $c)
+			{
+				$results['objects'][(string) $c->Key] = [
+					'name' => (string) $c->Key,
+					'time' => strtotime((string) $c->LastModified),
+					'size' => (int) $c->Size,
+					'hash' => substr((string) $c->ETag, 1, -1),
+				];
+
+				$results['nextMarker'] = (string) $c->Key;
+			}
+		}
+
+		if ($returnCommonPrefixes && $response->hasBody() && isset($response->body->CommonPrefixes))
+		{
+			foreach ($response->body->CommonPrefixes as $c)
+			{
+				$results['objects'][(string) $c->Prefix] = ['prefix' => (string) $c->Prefix];
+			}
+		}
+
+		if ($response->hasBody() && isset($response->body->IsTruncated) &&
+			((string) $response->body->IsTruncated == 'false')
+		)
+		{
+			$results['nextMarker'] = null;
+
+			return $results;
+		}
+
+		if ($response->hasBody() && isset($response->body->NextMarker))
+		{
+			$results['nextMarker'] = (string) $response->body->NextMarker;
+		}
+
+		return $results;
 	}
 }
