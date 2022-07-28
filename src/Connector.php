@@ -595,6 +595,11 @@ class Connector
 					$nextMarker = (string) $response->body->NextMarker;
 				}
 
+				// Refresh "Is it a truncated result?"
+				// https://github.com/akeeba/s3/blame/05ef038c45a8451c46303fbab07d74d4760682cb/src/Connector.php#L597
+				// https://github.com/akeeba/s3/blame/59e2b691814471a43cd439d6085da083710a091f/src/Connector.php#L543
+				$isTruncated = ($nextMarker !== null) && ((string) $response->body->IsTruncated == 'true');
+
 				$continueCondition = false;
 
 				if ($isTruncatedAndNoMaxKeys)
