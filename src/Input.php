@@ -450,7 +450,7 @@ class Input
 	 */
 	public function setSha256(?string $sha256): void
 	{
-		$this->sha256 = strtolower($sha256);
+		$this->sha256 = is_null($sha256) ? null : strtolower($sha256);
 	}
 
 	/**
