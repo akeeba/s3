@@ -482,7 +482,7 @@ class Request
 
 					$data = $this->input->getDataReference();
 
-					if (strlen($data))
+					if (strlen($data ?? ''))
 					{
 						curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
 					}
