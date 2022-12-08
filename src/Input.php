@@ -532,7 +532,7 @@ class Input
 		switch ($this->getInputType())
 		{
 			case self::INPUT_DATA:
-				return function_exists('mb_strlen') ? mb_strlen($this->data, '8bit') : strlen($this->data);
+				return function_exists('mb_strlen') ? mb_strlen($this->data ?? '', '8bit') : strlen($this->data ?? '');
 				break;
 
 			case self::INPUT_FILE:
