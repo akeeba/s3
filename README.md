@@ -12,7 +12,7 @@ This software is distributed under the GNU General Public License version 3 or, 
 
 ## Important note about version 2
 
-Akeeba Amazon S3 Connector version 2 has dropped support for PHP 5.3 to 7.0 inclusive. It is only compatible with PHP 7.1 or later, up to and including PHP 8.0.
+Akeeba Amazon S3 Connector version 2 has dropped support for PHP 5.3 to 7.0 inclusive. It is only compatible with PHP 7.1 or later, up to and including PHP 8.2.
 
 The most significant change in this version is that all methods use scalar type hints for parameters and return values. This _may_ break existing consumers which relied on implicit type conversion e.g. passing strings containing integer values instead of _actual_ integer values.
 
