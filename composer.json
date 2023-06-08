@@ -3,7 +3,7 @@
 	"type": "library",
 	"description": "A compact, dependency-less Amazon S3 API client implementing the most commonly used features",
 	"require": {
-		"php": ">=7.1.0 <8.1",
+		"php": ">=7.1.0 <8.4",
 		"ext-curl": "*",
 		"ext-simplexml": "*"
 	},
@@ -24,5 +24,11 @@
 		"psr-4": {
 			"Akeeba\\Engine\\Postproc\\Connector\\S3v4\\": "src"
 		}
+	},
+	"archive": {
+		"exclude": [
+			"minitest",
+			"TODO.md"
+		]
 	}
 }
