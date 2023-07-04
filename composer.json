@@ -11,7 +11,7 @@
 		"s3"
 	],
 	"homepage": "https://github.com/akeeba/s3",
-	"license": "GPL-3.0+",
+	"license": "GPL-3.0-or-later",
 	"authors": [
 		{
 			"name": "Nicholas K. Dionysopoulos",
