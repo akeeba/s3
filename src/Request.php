@@ -592,7 +592,15 @@ class Request
 			return $strlen;
 		}
 
+		// Ignore malformed headers without a value.
+		if (strpos($data, ':') === false)
+		{
+			return $strlen;
+		}
+
 		[$header, $value] = explode(': ', trim($data), 2);
+		$header = trim($header ?? '');
+		$value  = trim($value ?? '');
 
 		switch (strtolower($header))
 		{
@@ -609,7 +617,7 @@ class Request
 				break;
 
 			case 'etag':
-				$this->response->setHeader('hash', $value[0] == '"' ? substr($value, 1, -1) : $value);
+				$this->response->setHeader('hash',  trim($value, '"'));
 				break;
 
 			default:
