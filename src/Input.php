@@ -177,7 +177,13 @@ class Input
 	{
 		if (is_resource($this->fp))
 		{
-			@fclose($this->fp);
+			try
+			{
+				@fclose($this->fp);
+			}
+			catch (\Throwable $e)
+			{
+			}
 		}
 	}
 
@@ -258,7 +264,13 @@ class Input
 
 		if (is_resource($this->fp))
 		{
-			@fclose($this->fp);
+			try
+			{
+				@fclose($this->fp);
+			}
+			catch (\Throwable $e)
+			{
+			}
 		}
 
 		$this->fp = @fopen($file, 'r');
@@ -295,7 +307,13 @@ class Input
 
 		if (is_resource($this->fp))
 		{
-			@fclose($this->fp);
+			try
+			{
+				@fclose($this->fp);
+			}
+			catch (\Throwable $e)
+			{
+			}
 		}
 
 		$this->file = null;
@@ -329,7 +347,13 @@ class Input
 
 		if (is_resource($this->fp))
 		{
-			@fclose($this->fp);
+			try
+			{
+				@fclose($this->fp);
+			}
+			catch (\Throwable $e)
+			{
+			}
 		}
 
 		$this->file = null;

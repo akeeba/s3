@@ -543,7 +543,13 @@ class Request
 		// Clean up file resources
 		if (!is_null($this->fp) && is_resource($this->fp))
 		{
-			fclose($this->fp);
+			try
+			{
+				@fclose($this->fp);
+			}
+			catch (\Throwable $e)
+			{
+			}
 		}
 
 		return $this->response;
