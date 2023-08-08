@@ -290,10 +290,23 @@ class V4 extends Signature
 			$headers['Date'] = '';
 		}
 
+		$dateToSignFor = $headers['Date'];
+
+		/**
+		 * Special consideration for Wasabi.
+		 *
+		 * Wasabi deviates from the Amazon S3 v4 signature by NOT including the Date HTTP header in the string to sign
+		 * for. It uses an empty string instead. As a result, we cannot connect to Wasabi with the v4 signature method.
+		 */
+		if (strpos($headers['Host'], '.wasabisys.com') !== false)
+		{
+			$dateToSignFor = '';
+		}
+
 		$stringToSign = "AWS4-HMAC-SHA256\n" .
-			$headers['Date'] . "\n" .
-			$credentialScope . "\n" .
-			$hashedCanonicalRequest;
+	        $dateToSignFor . "\n" .
+	        $credentialScope . "\n" .
+	        $hashedCanonicalRequest;
 
 		if ($isPresignedURL)
 		{
