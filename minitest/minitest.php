@@ -192,6 +192,8 @@ foreach ($testConfigurations as $description => $setup)
 	if (!is_null($configOptions['endpoint']))
 	{
 		$s3Configuration->setEndpoint($configOptions['endpoint']);
+		$s3Configuration->setRegion($configOptions['region']);
+		$s3Configuration->setSignatureMethod($configOptions['signature']);
 	}
 
 	// Create the connector object
