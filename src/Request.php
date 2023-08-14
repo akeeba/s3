@@ -604,7 +604,7 @@ class Request
 			return $strlen;
 		}
 
-		[$header, $value] = explode(': ', trim($data), 2);
+		[$header, $value] = explode(':', trim($data), 2);
 		$header = trim($header ?? '');
 		$value  = trim($value ?? '');
 
