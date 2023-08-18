@@ -196,7 +196,7 @@ class Connector
 			$request->setHeader('Range', "bytes=$from-$to");
 		}
 
-		$response = $request->getResponse();
+		$response = $request->getResponse(true);
 
 		if (!$response->error->isError() && (($response->code !== 200) && ($response->code !== 206)))
 		{

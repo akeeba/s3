@@ -367,7 +367,7 @@ class Request
 	 *
 	 * @return  Response
 	 */
-	public function getResponse(): Response
+	public function getResponse(bool $rawResponse = false): Response
 	{
 		$this->processParametersIntoResource();
 
@@ -538,7 +538,7 @@ class Request
 		@curl_close($curl);
 
 		// Set the body data
-		$this->response->finaliseBody();
+		$this->response->finaliseBody($rawResponse);
 
 		// Clean up file resources
 		if (!is_null($this->fp) && is_resource($this->fp))

@@ -37,6 +37,7 @@ $standardTests = [
 	'SmallFiles',
 	'HeadObject',
 	'SmallInlineFiles',
+	'SmallInlineXMLFiles',
 	'SignedURLs',
 	'StorageClasses',
 	'ListFiles',
