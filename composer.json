@@ -22,8 +22,11 @@
 	],
 	"autoload": {
 		"psr-4": {
-			"Akeeba\\Engine\\Postproc\\Connector\\S3v4\\": "src"
-		}
+			"Akeeba\\S3\\": "src"
+		},
+		"files": [
+			"src/aliasing.php"
+		]
 	},
 	"archive": {
 		"exclude": [

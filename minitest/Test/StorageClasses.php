@@ -10,10 +10,10 @@
 namespace Akeeba\MiniTest\Test;
 
 
-use Akeeba\Engine\Postproc\Connector\S3v4\Acl;
-use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
-use Akeeba\Engine\Postproc\Connector\S3v4\Input;
-use Akeeba\Engine\Postproc\Connector\S3v4\StorageClass;
+use Akeeba\S3\Acl;
+use Akeeba\S3\Connector;
+use Akeeba\S3\Input;
+use Akeeba\S3\StorageClass;
 
 class StorageClasses extends AbstractTest
 {

@@ -10,9 +10,9 @@
 namespace Akeeba\MiniTest\Test;
 
 
-use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
-use Akeeba\Engine\Postproc\Connector\S3v4\Exception\CannotPutFile;
-use Akeeba\Engine\Postproc\Connector\S3v4\Input;
+use Akeeba\S3\Connector;
+use Akeeba\S3\Exception\CannotPutFile;
+use Akeeba\S3\Input;
 
 class ListFiles extends AbstractTest
 {

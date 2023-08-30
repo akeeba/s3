@@ -11,10 +11,10 @@
 namespace Akeeba\MiniTest\Test;
 
 
-use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
-use Akeeba\Engine\Postproc\Connector\S3v4\Exception\CannotDeleteFile;
-use Akeeba\Engine\Postproc\Connector\S3v4\Exception\CannotGetFile;
-use Akeeba\Engine\Postproc\Connector\S3v4\Input;
+use Akeeba\S3\Connector;
+use Akeeba\S3\Exception\CannotDeleteFile;
+use Akeeba\S3\Exception\CannotGetFile;
+use Akeeba\S3\Input;
 
 class HeadObject extends AbstractTest
 {

@@ -7,16 +7,16 @@
  * @license   GNU General Public License version 3, or later
  */
 
-namespace Akeeba\Engine\Postproc\Connector\S3v4;
+namespace Akeeba\S3;
 
 // Protection against direct access
-use Akeeba\Engine\Postproc\Connector\S3v4\Exception\CannotDeleteFile;
-use Akeeba\Engine\Postproc\Connector\S3v4\Exception\CannotGetBucket;
-use Akeeba\Engine\Postproc\Connector\S3v4\Exception\CannotGetFile;
-use Akeeba\Engine\Postproc\Connector\S3v4\Exception\CannotListBuckets;
-use Akeeba\Engine\Postproc\Connector\S3v4\Exception\CannotOpenFileForWrite;
-use Akeeba\Engine\Postproc\Connector\S3v4\Exception\CannotPutFile;
-use Akeeba\Engine\Postproc\Connector\S3v4\Response\Error;
+use Akeeba\S3\Exception\CannotDeleteFile;
+use Akeeba\S3\Exception\CannotGetBucket;
+use Akeeba\S3\Exception\CannotGetFile;
+use Akeeba\S3\Exception\CannotListBuckets;
+use Akeeba\S3\Exception\CannotOpenFileForWrite;
+use Akeeba\S3\Exception\CannotPutFile;
+use Akeeba\S3\Response\Error;
 
 defined('AKEEBAENGINE') || die();
 

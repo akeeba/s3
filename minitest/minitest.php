@@ -7,9 +7,9 @@
  * @license   GNU General Public License version 3, or later
  */
 
-use Akeeba\Engine\Postproc\Connector\S3v4\Configuration;
-use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
-use Akeeba\Engine\Postproc\Connector\S3v4\Input;
+use Akeeba\S3\Configuration;
+use Akeeba\S3\Connector;
+use Akeeba\S3\Input;
 
 // Necessary for including the library
 define('AKEEBAENGINE', 1);

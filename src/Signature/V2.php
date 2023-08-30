@@ -7,12 +7,12 @@
  * @license   GNU General Public License version 3, or later
  */
 
-namespace Akeeba\Engine\Postproc\Connector\S3v4\Signature;
+namespace Akeeba\S3\Signature;
 
 // Protection against direct access
 defined('AKEEBAENGINE') || die();
 
-use Akeeba\Engine\Postproc\Connector\S3v4\Signature;
+use Akeeba\S3\Signature;
 
 /**
  * Implements the Amazon AWS v2 signatures

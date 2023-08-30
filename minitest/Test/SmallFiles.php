@@ -10,8 +10,8 @@
 namespace Akeeba\MiniTest\Test;
 
 
-use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
-use Akeeba\Engine\Postproc\Connector\S3v4\Input;
+use Akeeba\S3\Connector;
+use Akeeba\S3\Input;
 
 /**
  * Upload, download and delete small files (under 1MB) using a file source

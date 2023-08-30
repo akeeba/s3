@@ -10,7 +10,7 @@
 namespace Akeeba\MiniTest\Test;
 
 
-use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
+use Akeeba\S3\Connector;
 
 class Multipart extends BigFiles
 {

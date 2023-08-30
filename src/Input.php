@@ -7,7 +7,7 @@
  * @license   GNU General Public License version 3, or later
  */
 
-namespace Akeeba\Engine\Postproc\Connector\S3v4;
+namespace Akeeba\S3;
 
 // Protection against direct access
 defined('AKEEBAENGINE') || die();

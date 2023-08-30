@@ -10,7 +10,7 @@
 namespace Akeeba\MiniTest\Test;
 
 
-use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
+use Akeeba\S3\Connector;
 use RuntimeException;
 
 class BucketsList extends AbstractTest
