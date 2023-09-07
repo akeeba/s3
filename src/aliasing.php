@@ -42,5 +42,5 @@ foreach (
 	] as $old => $new
 )
 {
-	class_alias($new, $old, false);
+	class_alias($new, $old, true);
 }
