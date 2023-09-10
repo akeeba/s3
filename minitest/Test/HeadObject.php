@@ -27,7 +27,7 @@ class HeadObject extends AbstractTest
 		$uri    = substr($uri, 0, $dotPos) . '.' . md5(microtime(false)) . substr($uri, $dotPos);
 
 		// Create a file with random data
-		$sourceFile = self::createFile(AbstractTest::TEN_KB);
+		$sourceFile = static::createFile(AbstractTest::TEN_KB);
 
 		// Upload the file. Throws exception if it fails.
 		$bucket = $options['bucket'];
@@ -37,8 +37,8 @@ class HeadObject extends AbstractTest
 
 		$headers = $s3->headObject($bucket, $uri);
 
-		self::assert(isset($headers['size']), 'The returned headers do not contain the object size');
-		self::assert($headers['size'] == AbstractTest::TEN_KB, 'The returned size does not match');
+		static::assert(isset($headers['size']), 'The returned headers do not contain the object size');
+		static::assert($headers['size'] == AbstractTest::TEN_KB, 'The returned size does not match');
 
 		// Remove the local files
 		@unlink($sourceFile);

@@ -23,12 +23,12 @@ class StorageClasses extends AbstractTest
 
 	public static function uploadRRS(Connector $s3, array $options): bool
 	{
-		return self::upload($s3, $options, self::TEN_KB, 'rrs_test_10kb.dat', StorageClass::REDUCED_REDUNDANCY);
+		return static::upload($s3, $options, static::TEN_KB, 'rrs_test_10kb.dat', StorageClass::REDUCED_REDUNDANCY);
 	}
 
 	public static function uploadIntelligentTiering(Connector $s3, array $options): bool
 	{
-		return self::upload($s3, $options, self::TEN_KB, 'rrs_test_10kb.dat', StorageClass::INTELLIGENT_TIERING);
+		return static::upload($s3, $options, static::TEN_KB, 'rrs_test_10kb.dat', StorageClass::INTELLIGENT_TIERING);
 	}
 
 	protected static function upload(Connector $s3, array $options, int $size, string $uri, string $storageClass = null)
@@ -38,7 +38,7 @@ class StorageClasses extends AbstractTest
 		$uri    = substr($uri, 0, $dotPos) . '.' . md5(microtime(false)) . substr($uri, $dotPos);
 
 		// Create some random data to upload
-		$sourceData = self::getRandomData($size);
+		$sourceData = static::getRandomData($size);
 
 		// Upload the data. Throws exception if it fails.
 		$bucket = $options['bucket'];
@@ -54,15 +54,15 @@ class StorageClasses extends AbstractTest
 		$result = true;
 
 		// Should I download the file and compare its contents with my random data?
-		if (self::$downloadAfter)
+		if (static::$downloadAfter)
 		{
 			$downloadedData = $s3->getObject($bucket, $uri);
 
-			$result = self::areStringsEqual($sourceData, $downloadedData);
+			$result = static::areStringsEqual($sourceData, $downloadedData);
 		}
 
 		// Should I delete the remotely stored file?
-		if (self::$deleteRemote)
+		if (static::$deleteRemote)
 		{
 			// Delete the remote file. Throws exception if it fails.
 			$s3->deleteObject($bucket, $uri);

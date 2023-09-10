@@ -21,8 +21,8 @@ class SmallFilesOnlyUpload extends SmallFiles
 {
 	public static function setup(Connector $s3, array $options): void
 	{
-		self::$deleteRemote  = false;
-		self::$downloadAfter = false;
+		static::$deleteRemote  = false;
+		static::$downloadAfter = false;
 
 		parent::setup($s3, $options);
 	}

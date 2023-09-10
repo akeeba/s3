@@ -23,7 +23,7 @@ class ListThousandsOfFiles extends AbstractTest
 			return;
 		}
 
-		$data = self::getRandomData(128);
+		$data = static::getRandomData(128);
 
 		echo "\nPopulating with 2100 files\n";
 
@@ -34,7 +34,7 @@ class ListThousandsOfFiles extends AbstractTest
 				echo "Uploading from $i...\n";
 			}
 
-			$uri   = sprintf('%stest_%04u.dat', self::PATH_PREFIX, $i);
+			$uri   = sprintf('%stest_%04u.dat', static::PATH_PREFIX, $i);
 			$input = Input::createFromData($data);
 			$s3->putObject($input, $options['bucket'], $uri);
 		}
@@ -42,16 +42,16 @@ class ListThousandsOfFiles extends AbstractTest
 
 	public static function testGetAll(Connector $s3, array $options): bool
 	{
-		$listing = $s3->getBucket($options['bucket'], self::PATH_PREFIX);
+		$listing = $s3->getBucket($options['bucket'], static::PATH_PREFIX);
 
-		self::assert(is_array($listing), "The files listing must be an array");
-		self::assert(count($listing) === 2100, "I am expecting to see 2100 files");
+		static::assert(is_array($listing), "The files listing must be an array");
+		static::assert(count($listing) === 2100, "I am expecting to see 2100 files");
 
 		for ($i = 1; $i <= 2100; $i++)
 		{
-			$key = sprintf('%stest_%04u.dat', self::PATH_PREFIX, $i);
+			$key = sprintf('%stest_%04u.dat', static::PATH_PREFIX, $i);
 
-			self::assert(array_key_exists($key, $listing), sprintf('Results should list object %s', $key));
+			static::assert(array_key_exists($key, $listing), sprintf('Results should list object %s', $key));
 		}
 
 		return true;
@@ -59,16 +59,16 @@ class ListThousandsOfFiles extends AbstractTest
 
 	public static function testGetHundred(Connector $s3, array $options): bool
 	{
-		$listing = $s3->getBucket($options['bucket'], self::PATH_PREFIX, null, 100);
+		$listing = $s3->getBucket($options['bucket'], static::PATH_PREFIX, null, 100);
 
-		self::assert(is_array($listing), "The files listing must be an array");
-		self::assert(count($listing) === 100, "I am expecting to see 100 files");
+		static::assert(is_array($listing), "The files listing must be an array");
+		static::assert(count($listing) === 100, "I am expecting to see 100 files");
 
 		for ($i = 1; $i <= 100; $i++)
 		{
-			$key = sprintf('%stest_%04u.dat', self::PATH_PREFIX, $i);
+			$key = sprintf('%stest_%04u.dat', static::PATH_PREFIX, $i);
 
-			self::assert(array_key_exists($key, $listing), sprintf('Results should list object %s', $key));
+			static::assert(array_key_exists($key, $listing), sprintf('Results should list object %s', $key));
 		}
 
 		return true;
@@ -76,16 +76,16 @@ class ListThousandsOfFiles extends AbstractTest
 
 	public static function testGetElevenHundred(Connector $s3, array $options): bool
 	{
-		$listing = $s3->getBucket($options['bucket'], self::PATH_PREFIX, null, 1100);
+		$listing = $s3->getBucket($options['bucket'], static::PATH_PREFIX, null, 1100);
 
-		self::assert(is_array($listing), "The files listing must be an array");
-		self::assert(count($listing) === 1100, "I am expecting to see 1100 files");
+		static::assert(is_array($listing), "The files listing must be an array");
+		static::assert(count($listing) === 1100, "I am expecting to see 1100 files");
 
 		for ($i = 1; $i <= 1100; $i++)
 		{
-			$key = sprintf('%stest_%04u.dat', self::PATH_PREFIX, $i);
+			$key = sprintf('%stest_%04u.dat', static::PATH_PREFIX, $i);
 
-			self::assert(array_key_exists($key, $listing), sprintf('Results should list object %s', $key));
+			static::assert(array_key_exists($key, $listing), sprintf('Results should list object %s', $key));
 		}
 
 		return true;
@@ -93,16 +93,16 @@ class ListThousandsOfFiles extends AbstractTest
 
 	public static function testGetLastHundred(Connector $s3, array $options): bool
 	{
-		$listing = $s3->getBucket($options['bucket'], self::PATH_PREFIX . 'test_20', null);
+		$listing = $s3->getBucket($options['bucket'], static::PATH_PREFIX . 'test_20', null);
 
-		self::assert(is_array($listing), "The files listing must be an array");
-		self::assert(count($listing) === 100, "I am expecting to see 100 files");
+		static::assert(is_array($listing), "The files listing must be an array");
+		static::assert(count($listing) === 100, "I am expecting to see 100 files");
 
 		for ($i = 2000; $i <= 2099; $i++)
 		{
-			$key = sprintf('%stest_%04u.dat', self::PATH_PREFIX, $i);
+			$key = sprintf('%stest_%04u.dat', static::PATH_PREFIX, $i);
 
-			self::assert(array_key_exists($key, $listing), sprintf('Results should list object %s', $key));
+			static::assert(array_key_exists($key, $listing), sprintf('Results should list object %s', $key));
 		}
 
 		return true;

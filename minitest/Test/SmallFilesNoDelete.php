@@ -21,7 +21,7 @@ class SmallFilesNoDelete extends SmallFiles
 {
 	public static function setup(Connector $s3, array $options): void
 	{
-		self::$deleteRemote = false;
+		static::$deleteRemote = false;
 
 		parent::setup($s3, $options);
 	}

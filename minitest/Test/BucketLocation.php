@@ -18,7 +18,7 @@ class BucketLocation extends AbstractTest
 	{
 		$location = $s3->getBucketLocation($options['bucket']);
 
-		self::assert($location === $options['region'], "Bucket ‘{$options['bucket']}′ reports being in region ‘{$location}′ instead of expected ‘{$options['region']}′");
+		static::assert($location === $options['region'], "Bucket ‘{$options['bucket']}′ reports being in region ‘{$location}′ instead of expected ‘{$options['region']}′");
 
 		return true;
 	}

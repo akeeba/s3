@@ -22,32 +22,32 @@ class SmallInlineXMLFiles extends SmallFiles
 {
 	public static function upload10KbRoot(Connector $s3, array $options): bool
 	{
-		return self::upload($s3, $options, AbstractTest::TEN_KB, 'root_10kb.xml');
+		return static::upload($s3, $options, AbstractTest::TEN_KB, 'root_10kb.xml');
 	}
 
 	public static function upload10KbRootGreek(Connector $s3, array $options): bool
 	{
-		return self::upload($s3, $options, AbstractTest::TEN_KB, 'δοκιμή_10kb.xml');
+		return static::upload($s3, $options, AbstractTest::TEN_KB, 'δοκιμή_10kb.xml');
 	}
 
 	public static function upload10KbFolderGreek(Connector $s3, array $options): bool
 	{
-		return self::upload($s3, $options, AbstractTest::TEN_KB, 'ο_φάκελός_μου/δοκιμή_10kb.xml');
+		return static::upload($s3, $options, AbstractTest::TEN_KB, 'ο_φάκελός_μου/δοκιμή_10kb.xml');
 	}
 
 	public static function upload600KbRoot(Connector $s3, array $options): bool
 	{
-		return self::upload($s3, $options, AbstractTest::SIX_HUNDRED_KB, 'root_600kb.xml');
+		return static::upload($s3, $options, AbstractTest::SIX_HUNDRED_KB, 'root_600kb.xml');
 	}
 
 	public static function upload10KbFolder(Connector $s3, array $options): bool
 	{
-		return self::upload($s3, $options, AbstractTest::TEN_KB, 'my_folder/10kb.xml');
+		return static::upload($s3, $options, AbstractTest::TEN_KB, 'my_folder/10kb.xml');
 	}
 
 	public static function upload600KbFolder(Connector $s3, array $options): bool
 	{
-		return self::upload($s3, $options, AbstractTest::SIX_HUNDRED_KB, 'my_folder/600kb.xml');
+		return static::upload($s3, $options, AbstractTest::SIX_HUNDRED_KB, 'my_folder/600kb.xml');
 	}
 
 	protected static function upload(Connector $s3, array $options, int $size, string $uri): bool
@@ -57,7 +57,7 @@ class SmallInlineXMLFiles extends SmallFiles
 		$uri    = substr($uri, 0, $dotPos) . '.' . md5(microtime(false)) . substr($uri, $dotPos);
 
 		// Create some random data to upload
-		$sourceData = self::createXMLFile($size);
+		$sourceData = static::createXMLFile($size);
 
 		// Upload the data. Throws exception if it fails.
 		$bucket = $options['bucket'];
@@ -69,15 +69,15 @@ class SmallInlineXMLFiles extends SmallFiles
 		$result = true;
 
 		// Should I download the file and compare its contents with my random data?
-		if (self::$downloadAfter)
+		if (static::$downloadAfter)
 		{
 			$downloadedData = $s3->getObject($bucket, $uri);
 
-			$result = self::areStringsEqual($sourceData, $downloadedData);
+			$result = static::areStringsEqual($sourceData, $downloadedData);
 		}
 
 		// Should I delete the remotely stored file?
-		if (self::$deleteRemote)
+		if (static::$deleteRemote)
 		{
 			// Delete the remote file. Throws exception if it fails.
 			$s3->deleteObject($bucket, $uri);
@@ -97,7 +97,7 @@ XML;
 
 		for ($i = 1; $i <= $chunks; $i++)
 		{
-			$randomBlock = self::genRandomData(1024 - 63);
+			$randomBlock = static::genRandomData(1024 - 63);
 			$out .= <<< XML
 		<element>
 			<id>$i</id>
