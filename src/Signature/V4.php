@@ -129,8 +129,8 @@ class V4 extends Signature
 		$signatureDate = new DateTime($headers['Date']);
 
 		$credentialScope = $signatureDate->format('Ymd') . '/' .
-			$this->request->getConfiguration()->getRegion() . '/' .
-			's3/aws4_request';
+		                   $this->request->getConfiguration()->getRegion() . '/' .
+		                   's3/aws4_request';
 
 		/**
 		 * If the Expires header is set up we're pre-signing a download URL. The string to sign is a bit
@@ -208,12 +208,14 @@ class V4 extends Signature
 		// The canonical URI is the resource path
 		$canonicalURI     = $resourcePath;
 		$bucketResource   = '/' . $bucket;
-		$regionalHostname = ($headers['Host'] != 's3.amazonaws.com') && ($headers['Host'] != $bucket . '.s3.amazonaws.com');
+		$regionalHostname = ($headers['Host'] != 's3.amazonaws.com')
+		                    && ($headers['Host'] != $bucket . '.s3.amazonaws.com');
 
 		// Special case: if the canonical URI ends in /?location the bucket name DOES count as part of the canonical URL
 		// even though the Host is s3.amazonaws.com (in which case it normally shouldn't count). Yeah, I know, it makes
 		// no sense!!!
-		if (!$regionalHostname && ($headers['Host'] == 's3.amazonaws.com') && (substr($canonicalURI, -10) == '/?location'))
+		if (!$regionalHostname && ($headers['Host'] == 's3.amazonaws.com')
+		    && (substr($canonicalURI, -10) == '/?location'))
 		{
 			$regionalHostname = true;
 		}
@@ -274,11 +276,11 @@ class V4 extends Signature
 
 		// Calculate the canonical request
 		$canonicalRequest = $verb . "\n" .
-			$canonicalURI . "\n" .
-			$canonicalQueryString . "\n" .
-			$canonicalHeaders . "\n" .
-			$signedHeaders . "\n" .
-			$requestPayloadHash;
+		                    $canonicalURI . "\n" .
+		                    $canonicalQueryString . "\n" .
+		                    $canonicalHeaders . "\n" .
+		                    $signedHeaders . "\n" .
+		                    $requestPayloadHash;
 
 		$hashedCanonicalRequest = hash('sha256', $canonicalRequest);
 
@@ -304,16 +306,16 @@ class V4 extends Signature
 		}
 
 		$stringToSign = "AWS4-HMAC-SHA256\n" .
-	        $dateToSignFor . "\n" .
-	        $credentialScope . "\n" .
-	        $hashedCanonicalRequest;
+		                $dateToSignFor . "\n" .
+		                $credentialScope . "\n" .
+		                $hashedCanonicalRequest;
 
 		if ($isPresignedURL)
 		{
 			$stringToSign = "AWS4-HMAC-SHA256\n" .
-				$parameters['X-Amz-Date'] . "\n" .
-				$credentialScope . "\n" .
-				$hashedCanonicalRequest;
+			                $parameters['X-Amz-Date'] . "\n" .
+			                $credentialScope . "\n" .
+			                $hashedCanonicalRequest;
 		}
 
 		// ========== Step 3: Calculate the signature ==========
@@ -326,9 +328,9 @@ class V4 extends Signature
 		// See http://docs.aws.amazon.com/general/latest/gr/sigv4-add-signature-to-request.html
 
 		$authorization = 'AWS4-HMAC-SHA256 Credential=' .
-			$this->request->getConfiguration()->getAccess() . '/' . $credentialScope . ', ' .
-			'SignedHeaders=' . $signedHeaders . ', ' .
-			'Signature=' . $signature;
+		                 $this->request->getConfiguration()->getAccess() . '/' . $credentialScope . ', ' .
+		                 'SignedHeaders=' . $signedHeaders . ', ' .
+		                 'Signature=' . $signature;
 
 		// For presigned URLs we only return the Base64-encoded signature without the AWS format specifier and the
 		// public access key.
@@ -379,7 +381,14 @@ class V4 extends Signature
 	 */
 	private function getPresignedHostnameForRegion(string $region): string
 	{
-		$endpoint         = 's3.' . $region . '.amazonaws.com';
+		$config   = $this->request->getConfiguration();
+		$endpoint = $config->getEndpoint();
+
+		if (empty($endpoint))
+		{
+			$endpoint = 's3.' . $region . '.amazonaws.com';
+		}
+
 		$dualstackEnabled = $this->request->getConfiguration()->getDualstackUrl();
 
 		// If dual-stack URLs are enabled then prepend the endpoint

@@ -566,7 +566,7 @@ class Request
 	 */
 	protected function __responseWriteCallback($curl, string $data): int
 	{
-		if (in_array($this->response->code, [200, 206]) && !is_null($this->fp) && is_resource($this->fp))
+		if (in_array($this->response->code, [0, 200, 206]) && !is_null($this->fp) && is_resource($this->fp))
 		{
 			return fwrite($this->fp, $data);
 		}
