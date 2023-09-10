@@ -7,6 +7,8 @@
  * @license   GNU General Public License version 3, or later
  */
 
+// Custom Endpoint. The example below is for using LocalStack, see https://localstack.cloud/
+// define('DEFAULT_ENDPOINT', 'localhost.localstack.cloud:4566');
 // Default Amazon S3 Access Key
 define('DEFAULT_ACCESS_KEY', 'your s3 access key');
 // Default Amazon S3 Secret Key
