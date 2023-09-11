@@ -142,6 +142,12 @@ class Request
 		// The date must always be added as a header
 		$this->headers['Date'] = gmdate('D, d M Y H:i:s O');
 
+		// S3-"compatible" services use a different date format. Because why not?
+		if (strpos($this->headers['Host'], '.amazonaws.com') === false)
+		{
+			$this->headers['Date'] = gmdate('D, d M Y H:i:s T');
+		}
+
 		// If there is a security token we need to set up the X-Amz-Security-Token header
 		$token = $this->configuration->getToken();
 
@@ -417,8 +423,10 @@ class Request
 			 * Caveat: if your bucket contains dots in the name we have to turn off host verification due to the way the
 			 * S3 SSL certificates are set up.
 			 */
-			$isAmazonS3  = (substr($this->headers['Host'], -14) == '.amazonaws.com') ||
-				substr($this->headers['Host'], -16) == 'amazonaws.com.cn';
+			$isAmazonS3  = (substr($this->headers['Host'], -14) == '.amazonaws.com')
+			               || substr(
+				                  $this->headers['Host'], -16
+			                  ) == 'amazonaws.com.cn';
 			$tooManyDots = substr_count($this->headers['Host'], '.') > 4;
 
 			$verifyHost = ($isAmazonS3 && $tooManyDots) ? 0 : 2;
@@ -429,6 +437,27 @@ class Request
 
 		curl_setopt($curl, CURLOPT_URL, $url);
 
+		/**
+		 * Set the optional x-amz-date header for third party services.
+		 *
+		 * Amazon S3 proper expects to get the date from the Date header. Third party services typically implement the
+		 * (wrongly) documented behaviour of using the x-amz-date header but, if it's missing, fall back to the Date
+		 * header. Wasabi does not fall back; it only uses the x-amz-date header which is why we have to set it here if
+		 * the request iss not made to Amazon S3 proper.
+		 */
+		$this->headers['x-amz-date'] = strpos($this->headers['Host'], '.amazonaws.com') !== false
+			? ''
+			: (new \DateTime($this->headers['Date']))->format('Ymd\THis\Z');
+
+		/**
+		 * Remove empty headers.
+		 *
+		 * While Amazon S3 proper and most third party implementations have no problem with that, there a few of them
+		 * (such as Synology C2) which choke on empty headers.
+		 */
+		$this->headers = array_filter($this->headers);
+
+		// Get the request signature
 		$signer = Signature::getSignatureObject($this, $this->configuration->getSignatureMethod());
 		$signer->preProcessHeaders($this->headers, $this->amzHeaders);
 
@@ -579,7 +608,7 @@ class Request
 	/**
 	 * cURL header callback
 	 *
-	 * @param   resource  $curl  cURL resource
+	 * @param   resource   $curl  cURL resource
 	 * @param   string    &$data  Data
 	 *
 	 * @return  int  Length in bytes
@@ -623,7 +652,7 @@ class Request
 				break;
 
 			case 'etag':
-				$this->response->setHeader('hash',  trim($value, '"'));
+				$this->response->setHeader('hash', trim($value, '"'));
 				break;
 
 			default:
@@ -668,13 +697,12 @@ class Request
 			$query     = substr($query, 0, -1);
 			$this->uri .= $query;
 
-			if (array_key_exists('acl', $this->parameters) ||
-				array_key_exists('location', $this->parameters) ||
-				array_key_exists('torrent', $this->parameters) ||
-				array_key_exists('logging', $this->parameters) ||
-				array_key_exists('uploads', $this->parameters) ||
-				array_key_exists('uploadId', $this->parameters) ||
-				array_key_exists('partNumber', $this->parameters)
+			if (array_key_exists('acl', $this->parameters) || array_key_exists('location', $this->parameters)
+			    || array_key_exists('torrent', $this->parameters)
+			    || array_key_exists('logging', $this->parameters)
+			    || array_key_exists('uploads', $this->parameters)
+			    || array_key_exists('uploadId', $this->parameters)
+			    || array_key_exists('partNumber', $this->parameters)
 			)
 			{
 				$this->resource .= $query;

@@ -292,18 +292,28 @@ class V4 extends Signature
 			$headers['Date'] = '';
 		}
 
-		$dateToSignFor = $headers['Date'];
-
 		/**
-		 * Special consideration for Wasabi.
+		 * The Date in the String-to-Sign is a messy situation.
 		 *
-		 * Wasabi deviates from the Amazon S3 v4 signature by NOT including the Date HTTP header in the string to sign
-		 * for. It uses an empty string instead. As a result, we cannot connect to Wasabi with the v4 signature method.
+		 * Amazon's documentation says it must be in ISO 8601 format: `Ymd\THis\Z`. Unfortunately, Amazon's
+		 * documentation is actually wrong :troll_face: The actual Amazon S3 service expects the date to be formatted as
+		 * per RFC1123.
+		 *
+		 * Most third party implementations have caught up to the fact that Amazon has documented the v4 signatures
+		 * wrongly (naughty AWS!) and accept either format.
+		 *
+		 * Some other third party implementations, which never bothered to validate their implementations against Amazon
+		 * S3 proper, only expect what Amazon has documented as "ISO 8601". Therefore, we detect third party services
+		 * and switch to the as-documented date format.
+		 *
+		 * Some other third party services, like Wasabi, are broken in yet a different way. They will only use the date
+		 * from the x-amz-date header, WITHOUT falling back to the Date header if the former is not present. This is
+		 * the opposite of Amazon S3 proper which does expect the Date header. That's why the Request class sets both
+		 * headers if the request is made to a service _other_ than Amazon S3 proper.
 		 */
-		if (strpos($headers['Host'], '.wasabisys.com') !== false)
-		{
-			$dateToSignFor = '';
-		}
+		$dateToSignFor = strpos($headers['Host'], '.amazonaws.com') !== false
+			? $headers['Date']
+			: $signatureDate->format('Ymd\THis\Z');
 
 		$stringToSign = "AWS4-HMAC-SHA256\n" .
 		                $dateToSignFor . "\n" .
