@@ -77,14 +77,20 @@ class V4 extends Signature
 		 * http://s3-eu-west-1.amazonaws.com/example instead of http://example.amazonaws.com/ for all authenticated URLs
 		 */
 		$region   = $this->request->getConfiguration()->getRegion();
+		$bucket   = $this->request->getBucket();
 		$hostname = $this->getPresignedHostnameForRegion($region);
+
+		if ($this->isValidBucketName($bucket))
+		{
+			$hostname = $bucket . '.' . $hostname;
+		}
+
 		$this->request->setHeader('Host', $hostname);
 
 		// Set the expiration time in seconds
 		$this->request->setHeader('Expires', (int) $lifetime);
 
 		// Get the query parameters, including the calculated signature
-		$bucket           = $this->request->getBucket();
 		$uri              = $this->request->getResource();
 		$headers          = $this->request->getHeaders();
 		$protocol         = $https ? 'https' : 'http';
@@ -92,6 +98,11 @@ class V4 extends Signature
 
 		// The query parameters are returned serialized; unserialize them, then build and return the URL.
 		$queryParameters = unserialize($serialisedParams);
+
+		if ($this->isValidBucketName($bucket) && strpos($uri, '/' . $bucket) === 0)
+		{
+			$uri = substr($uri, strlen($bucket) + 1);
+		}
 
 		$query = http_build_query($queryParameters);
 
@@ -413,5 +424,84 @@ class V4 extends Signature
 		}
 
 		return $endpoint;
+	}
+
+	/**
+	 * Is this a valid bucket name?
+	 *
+	 * @param   string  $bucketName   The bucket name to check
+	 * @param   bool    $asSubdomain  Should I put additional restrictions for use as a subdomain?
+	 *
+	 * @return  bool
+	 * @since   2.3.1
+	 *
+	 * @see     https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+	 */
+	private function isValidBucketName(string $bucketName, bool $asSubdomain = true): bool
+	{
+		/**
+		 * If there are dots in the bucket name I can't use it as a subdomain.
+		 *
+		 * "If you include dots in a bucket's name, you can't use virtual-host-style addressing over HTTPS, unless you
+		 * perform your own certificate validation. This is because the security certificates used for virtual hosting
+		 * of buckets don't work for buckets with dots in their names."
+		 */
+		if ($asSubdomain && strpos($bucketName, '.') !== false)
+		{
+			return false;
+		}
+
+		/**
+		 * - Bucket names must be between 3 (min) and 63 (max) characters long.
+		 * - Bucket names can consist only of lowercase letters, numbers, dots (.), and hyphens (-).
+		 */
+		if (!preg_match('/^[a-z0-9\-.]{3,63}$/', $bucketName))
+		{
+			return false;
+		}
+
+		// Bucket names must begin and end with a letter or number.
+		if (!preg_match('/^[a-z0-9].*[a-z0-9]$/', $bucketName))
+		{
+			return false;
+		}
+
+		// Bucket names must not contain two adjacent periods.
+		if (preg_match('/\.\./', $bucketName))
+		{
+			return false;
+		}
+
+		// Bucket names must not be formatted as an IP address (for example, 192.168.5.4).
+		if (preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $bucketName))
+		{
+			return false;
+		}
+
+		// Bucket names must not start with the prefix xn--.
+		if (strpos($bucketName, 'xn--') === 0)
+		{
+			return false;
+		}
+
+		// Bucket names must not start with the prefix sthree- and the prefix sthree-configurator.
+		if (strpos($bucketName, 'sthree-') === 0)
+		{
+			return false;
+		}
+
+		// Bucket names must not end with the suffix -s3alias.
+		if (substr($bucketName, -8) === '-s3alias')
+		{
+			return false;
+		}
+
+		// Bucket names must not end with the suffix --ol-s3.
+		if (substr($bucketName, -7) === '--ol-s3')
+		{
+			return false;
+		}
+
+		return true;
 	}
 }
