@@ -410,7 +410,8 @@ class V4 extends Signature
 			$endpoint = 's3.' . $region . '.amazonaws.com';
 		}
 
-		$dualstackEnabled = $this->request->getConfiguration()->getDualstackUrl();
+		// As of October 2023, AWS does not consider DualStack signed URLs as valid. Whatever.
+		$dualstackEnabled = false && $this->request->getConfiguration()->getDualstackUrl();
 
 		// If dual-stack URLs are enabled then prepend the endpoint
 		if ($dualstackEnabled)
