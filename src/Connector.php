@@ -368,7 +368,6 @@ class Connector
 		$newConfig->setUseLegacyPathStyle(true);
 
 		// Create the request object.
-		$uri     = str_replace('%2F', '/', rawurlencode($uri));
 		$request = new Request('GET', $bucket, $uri, $newConfig);
 
 		if ($query)
