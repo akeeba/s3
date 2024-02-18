@@ -52,6 +52,9 @@ class SignedURLs extends AbstractTest
 		$s3->putObject($input, $options['bucket'], $uri, $aclPrivilege);
 
 		$downloadURL    = $s3->getAuthenticatedURL($options['bucket'], $uri, null, $options['ssl']);
+
+		echo "\n\tDownload URL: $downloadURL\n";
+
 		$downloadedData = @file_get_contents($downloadURL);
 
 		try
