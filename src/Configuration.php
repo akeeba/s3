@@ -93,6 +93,13 @@ class Configuration
 	protected $alternateDateHeaderFormat = true;
 
 	/**
+	 * Should I use the standard HTTP Date header instead of the X-Amz-Date header?
+	 *
+	 * @var  bool
+	 */
+	protected $useHTTPDateHeader = false;
+
+	/**
 	 * Public constructor
 	 *
 	 * @param   string  $access           Amazon S3 Access Key
@@ -394,5 +401,27 @@ class Configuration
 	public function setAlternateDateHeaderFormat(bool $alternateDateHeaderFormat): void
 	{
 		$this->alternateDateHeaderFormat = $alternateDateHeaderFormat;
+	}
+
+	/**
+	 * Get the flag indicating whether to use the HTTP Date header
+	 *
+	 * @return  bool  Flag indicating whether to use the HTTP Date header
+	 */
+	public function getUseHTTPDateHeader(): bool
+	{
+		return $this->useHTTPDateHeader;
+	}
+
+	/**
+	 * Set the flag indicating whether to use the HTTP Date header.
+	 *
+	 * @param   bool  $useHTTPDateHeader  Whether to use the HTTP Date header
+	 *
+	 * @return  void
+	 */
+	public function setUseHTTPDateHeader(bool $useHTTPDateHeader): void
+	{
+		$this->useHTTPDateHeader = $useHTTPDateHeader;
 	}
 }

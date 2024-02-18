@@ -137,7 +137,7 @@ class V4 extends Signature
 		}
 
 		// Get the credentials scope
-		$signatureDate = new DateTime($headers['Date']);
+		$signatureDate = new DateTime($headers['Date'] ?? $amzHeaders['x-amz-date']);
 
 		$credentialScope = $signatureDate->format('Ymd') . '/' .
 		                   $this->request->getConfiguration()->getRegion() . '/' .
@@ -218,9 +218,36 @@ class V4 extends Signature
 
 		// The canonical URI is the resource path
 		$canonicalURI     = $resourcePath;
-		$bucketResource   = '/' . $bucket;
+		$bucketResource   = '/' . $bucket . '/';
 		$regionalHostname = ($headers['Host'] != 's3.amazonaws.com')
 		                    && ($headers['Host'] != $bucket . '.s3.amazonaws.com');
+
+		/**
+		 * Yet another special case for third party, S3-compatible services, when using pre-signed URLs.
+		 *
+		 * Given a bucket `example` and filepath `foo/bar.txt` the canonical URI to sign is supposed to be
+		 * /example/foo/bar.txt regardless of whether we are using path style or subdomain hosting style access to the
+		 * bucket.
+		 *
+		 * When calculating a pre-signed URL, the URL we will be accessing will be something to the tune of
+		 * example.endpoint.com/foo/bar.txt. Amazon S3 proper allows us to use EITHER the nominal canonical URI
+		 * /foo/bar.txt OR the /example/foo/bar.txt canonical URI for consistency. Some third party providers, like
+		 * Wasabi, will choke on the former and complain about the signature being invalid.
+		 *
+		 * To address this issue we check if all the following conditions are met:
+		 * - We are calculating a signature for a pre-signed URL.
+		 * - The service is NOT Amazon S3 proper.
+		 * - The domain name starts with the bucket name.
+		 * In this case, and this case only, we set $regionalHostname to false. This triggers an if-block further down
+		 * which strips the `/bucketName/` prefix from the canonical URI, converting it to `/`. Therefore, the canonical
+		 * URI in the signature becomes the nominal URI we will be accessing in the bucket, solving the problem with
+		 * those third party services.
+		 */
+		// Figuring out whether it's a regional hostname DOES NOT work above if it's not AWS S3 proper. Let's fix that.
+		if ($isPresignedURL && strpos($headers['Host'], 'amazonaws.com') === false && !strpos($headers['Host'], $bucket . '.'))
+		{
+			$regionalHostname = false;
+		}
 
 		// Special case: if the canonical URI ends in /?location the bucket name DOES count as part of the canonical URL
 		// even though the Host is s3.amazonaws.com (in which case it normally shouldn't count). Yeah, I know, it makes
@@ -231,15 +258,15 @@ class V4 extends Signature
 			$regionalHostname = true;
 		}
 
-		if (!$regionalHostname && (strpos($canonicalURI, $bucketResource) === 0))
+		if (!$regionalHostname && (strpos($canonicalURI, $bucketResource) === 0 || strpos($canonicalURI, substr($bucketResource, 0, -1)) === 0))
 		{
-			if ($canonicalURI === $bucketResource)
+			if ($canonicalURI === substr($bucketResource, 0, -1))
 			{
 				$canonicalURI = '/';
 			}
 			else
 			{
-				$canonicalURI = substr($canonicalURI, strlen($bucketResource));
+				$canonicalURI = substr($canonicalURI, strlen($bucketResource) - 1);
 			}
 		}
 
@@ -323,7 +350,7 @@ class V4 extends Signature
 		 * headers if the request is made to a service _other_ than Amazon S3 proper.
 		 */
 		$dateToSignFor = strpos($headers['Host'], '.amazonaws.com') !== false
-			? $headers['Date']
+			? ($headers['Date'] ?? $amzHeaders['x-amz-date'])
 			: $signatureDate->format('Ymd\THis\Z');
 
 		$stringToSign = "AWS4-HMAC-SHA256\n" .
