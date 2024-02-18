@@ -9,7 +9,23 @@
 
 use Akeeba\S3\Configuration;
 use Akeeba\S3\Connector;
-use Akeeba\S3\Input;
+
+/**
+ * The Miniature Test Framework For The Akeeba S3 Library
+ *
+ * This is a self-contained test-suite runner. Running minitest.php will execute all the tests against all
+ * configurations set up in the config.php file. When it's decked out with all real world examples this can take many
+ * hours to complete (it's not as "mini" as its name would like you to believe).
+ *
+ * Please read NOTES.md before proceeding and do keep in mind that some tests may fail for reasons outside the control
+ * of the library such as network conditions, whether PHP has a configured Certification Authority cache etc.
+ *
+ * As to why we didn't use Unit Tests: Elementary, dear Watson. Unit Tests are great when testing your code against a
+ * specification. In this case, the specification would be the Amazon S3 API documentation. Sounds great in theory, but
+ * not even Amazon itself works according to its own documentation, let alone the third party "S3-compatible" services
+ * which each one implements its own interpretation of that documentation. Therefore, slow-as-heck integration testing
+ * is the only way to do any kind of meaningful testing.
+ */
 
 // Necessary for including the library
 define('AKEEBAENGINE', 1);
