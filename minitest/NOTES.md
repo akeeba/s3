@@ -20,7 +20,7 @@ pip install awscli-local
 
 Start LocalStack e.g. `localstack start -d`
 
-Create a new bucket called `test` i.e. `awslocal s3 mk s3://test`
+Create a new bucket called `test` i.e. `awslocal s3 mb s3://test`
 
 Copy `config.dist.php` to `config.php` and make the following changes:
 ```php
