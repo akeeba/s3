@@ -350,7 +350,7 @@ foreach ($testConfigurations as $description => $setup)
 			[$className, $method] = $callableSetup;
 			echo "  ⏱ Tearing down {$className}:{$method}…";
 			call_user_func($callableTeardown, $s3Connector, $configOptions);
-			echo "\r     Teared down {$className}   " . PHP_EOL;
+			echo "\r     Tore down {$className}   " . PHP_EOL;
 		}
 	}
 
