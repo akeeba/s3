@@ -152,6 +152,13 @@ foreach ($testConfigurations as $description => $setup)
 	echo "▶ " . $description . PHP_EOL;
 	echo str_repeat('〰', 80) . PHP_EOL . PHP_EOL;
 
+	if ($setup['skip'] ?? false)
+	{
+		echo "\t🤡 Skipping\n\n";
+
+		continue;
+	}
+
 	// Extract the configuration options
 	if (!isset($setup['configuration']))
 	{
@@ -159,14 +166,14 @@ foreach ($testConfigurations as $description => $setup)
 	}
 
 	$configOptions = array_merge([
-		'access'      => DEFAULT_ACCESS_KEY,
-		'secret'      => DEFAULT_SECRET_KEY,
-		'region'      => DEFAULT_REGION,
-		'bucket'      => DEFAULT_BUCKET,
-		'signature'   => DEFAULT_SIGNATURE,
-		'dualstack'   => DEFAULT_DUALSTACK,
-		'path_access' => DEFAULT_PATH_ACCESS,
-		'ssl'         => DEFAULT_SSL,
+		'access'      => defined('DEFAULT_ACCESS_KEY') ? DEFAULT_ACCESS_KEY : null,
+		'secret'      => defined('DEFAULT_SECRET_KEY') ? DEFAULT_SECRET_KEY : null,
+		'region'      => defined('DEFAULT_REGION') ? DEFAULT_REGION : null,
+		'bucket'      => defined('DEFAULT_BUCKET') ? DEFAULT_BUCKET : null,
+		'signature'   => defined('DEFAULT_SIGNATURE') ? DEFAULT_SIGNATURE : null,
+		'dualstack'   => defined('DEFAULT_DUALSTACK') ? DEFAULT_DUALSTACK : null,
+		'path_access' => defined('DEFAULT_PATH_ACCESS') ? DEFAULT_PATH_ACCESS : null,
+		'ssl'         => defined('DEFAULT_SSL') ? DEFAULT_SSL : null,
 		'endpoint'    => defined('DEFAULT_ENDPOINT') ? constant('DEFAULT_ENDPOINT') : null,
 	], $setup['configuration']);
 
