@@ -143,7 +143,7 @@ class Request
 		$this->headers['Date'] = gmdate('D, d M Y H:i:s O');
 
 		// S3-"compatible" services use a different date format. Because why not?
-		if (strpos($this->headers['Host'], '.amazonaws.com') === false)
+		if ($this->configuration->getAlternateDateHeaderFormat() && strpos($this->headers['Host'], '.amazonaws.com') === false)
 		{
 			$this->headers['Date'] = gmdate('D, d M Y H:i:s T');
 		}

@@ -83,6 +83,16 @@ class Configuration
 	protected $endpoint = 's3.amazonaws.com';
 
 	/**
+	 * Should I use an alternative date header format (D, d M Y H:i:s T instead of D, d M Y H:i:s O) for non-Amazon,
+	 * S3-compatible services?
+	 *
+	 * This is enabled by default.
+	 *
+	 * @var  bool
+	 */
+	protected $alternateDateHeaderFormat = true;
+
+	/**
 	 * Public constructor
 	 *
 	 * @param   string  $access           Amazon S3 Access Key
@@ -362,5 +372,27 @@ class Configuration
 	public function setUseDualstackUrl(bool $useDualstackUrl): void
 	{
 		$this->useDualstackUrl = $useDualstackUrl;
+	}
+
+	/**
+	 * Get the flag for using an alternate date format for non-Amazon, S3-compatible services.
+	 *
+	 * @return bool
+	 */
+	public function getAlternateDateHeaderFormat(): bool
+	{
+		return $this->alternateDateHeaderFormat;
+	}
+
+	/**
+	 * Set the flag for using an alternate date format for non-Amazon, S3-compatible services.
+	 *
+	 * @param   bool  $alternateDateHeaderFormat
+	 *
+	 * @return  void
+	 */
+	public function setAlternateDateHeaderFormat(bool $alternateDateHeaderFormat): void
+	{
+		$this->alternateDateHeaderFormat = $alternateDateHeaderFormat;
 	}
 }
