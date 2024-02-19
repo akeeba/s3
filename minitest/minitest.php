@@ -223,6 +223,22 @@ foreach ($testConfigurations as $description => $setup)
 	$s3Configuration->setUseLegacyPathStyle($configOptions['path_access']);
 	$s3Configuration->setSSL($configOptions['ssl']);
 
+	// Feature flags
+	if (isset($configOptions['alternateDateHeaderFormat']))
+	{
+		$s3Configuration->setAlternateDateHeaderFormat((bool) $configOptions['alternateDateHeaderFormat']);
+	}
+
+	if (isset($configOptions['useHTTPDateHeader']))
+	{
+		$s3Configuration->setUseHTTPDateHeader((bool) $configOptions['useHTTPDateHeader']);
+	}
+
+	if (isset($configOptions['preSignedBucketInURL']))
+	{
+		$s3Configuration->setPreSignedBucketInURL((bool) $configOptions['preSignedBucketInURL']);
+	}
+
 	// Create the connector object
 	$s3Connector = new Connector($s3Configuration);
 

@@ -80,7 +80,7 @@ class V4 extends Signature
 		$bucket   = $this->request->getBucket();
 		$hostname = $this->getPresignedHostnameForRegion($region);
 
-		if ($this->isValidBucketName($bucket))
+		if (!$this->request->getConfiguration()->getPreSignedBucketInURL() && $this->isValidBucketName($bucket))
 		{
 			$hostname = $bucket . '.' . $hostname;
 		}
@@ -99,7 +99,11 @@ class V4 extends Signature
 		// The query parameters are returned serialized; unserialize them, then build and return the URL.
 		$queryParameters = unserialize($serialisedParams);
 
-		if ($this->isValidBucketName($bucket) && strpos($uri, '/' . $bucket) === 0)
+		// This should be toggleable
+		if (
+			!$this->request->getConfiguration()->getPreSignedBucketInURL()
+			&& $this->isValidBucketName($bucket)
+			&& strpos($uri, '/' . $bucket) === 0)
 		{
 			$uri = substr($uri, strlen($bucket) + 1);
 		}
@@ -350,7 +354,7 @@ class V4 extends Signature
 		 * headers if the request is made to a service _other_ than Amazon S3 proper.
 		 */
 		$dateToSignFor = strpos($headers['Host'], '.amazonaws.com') !== false
-			? ($headers['Date'] ?? $amzHeaders['x-amz-date'])
+			? (($headers['Date'] ?? null) ?: ($amzHeaders['x-amz-date'] ?? null) ?: $signatureDate->format('Ymd\THis\Z'))
 			: $signatureDate->format('Ymd\THis\Z');
 
 		$stringToSign = "AWS4-HMAC-SHA256\n" .

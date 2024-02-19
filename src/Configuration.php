@@ -100,6 +100,16 @@ class Configuration
 	protected $useHTTPDateHeader = false;
 
 	/**
+	 * Should pre-signed URLs include the bucket name in the URL? Only applies to v4 signatures.
+	 *
+	 * Amazon S3 and most implementations need this turned off (default). LocalStack seems to not work properly with the
+	 * bucket name as a subdomain, hence the need for this flag.
+	 *
+	 * @var  bool
+	 */
+	protected $preSignedBucketInURL = false;
+
+	/**
 	 * Public constructor
 	 *
 	 * @param   string  $access           Amazon S3 Access Key
@@ -423,5 +433,15 @@ class Configuration
 	public function setUseHTTPDateHeader(bool $useHTTPDateHeader): void
 	{
 		$this->useHTTPDateHeader = $useHTTPDateHeader;
+	}
+
+	public function getPreSignedBucketInURL(): bool
+	{
+		return $this->preSignedBucketInURL;
+	}
+
+	public function setPreSignedBucketInURL(bool $preSignedBucketInURL): void
+	{
+		$this->preSignedBucketInURL = $preSignedBucketInURL;
 	}
 }
