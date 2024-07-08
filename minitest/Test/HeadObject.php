@@ -24,7 +24,7 @@ class HeadObject extends AbstractTest
 
 		// Randomize the name. Required for archive buckets where you cannot overwrite data.
 		$dotPos = strrpos($uri, '.');
-		$uri    = substr($uri, 0, $dotPos) . '.' . md5(microtime(false)) . substr($uri, $dotPos);
+		$uri    = substr($uri, 0, $dotPos) . '.' . hash('md5', microtime(false)) . substr($uri, $dotPos);
 
 		// Create a file with random data
 		$sourceFile = static::createFile(AbstractTest::TEN_KB);
@@ -55,7 +55,7 @@ class HeadObject extends AbstractTest
 
 		try
 		{
-			$headers = $s3->headObject($bucket, md5(microtime(false)) . '_does_not_exist');
+			$headers = $s3->headObject($bucket, hash('md5', microtime(false)) . '_does_not_exist');
 		}
 		catch (CannotGetFile $e)
 		{

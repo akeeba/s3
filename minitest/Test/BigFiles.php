@@ -101,7 +101,7 @@ class BigFiles extends AbstractTest
 	{
 		// Randomize the name. Required for archive buckets where you cannot overwrite data.
 		$dotPos = strrpos($uri, '.');
-		$uri    = substr($uri, 0, $dotPos) . '.' . md5(microtime(false)) . substr($uri, $dotPos);
+		$uri    = substr($uri, 0, $dotPos) . '.' . hash('md5', microtime(false)) . substr($uri, $dotPos);
 
 		static::$numberOfChunks = 0;
 
