@@ -670,7 +670,7 @@ class Connector
 			);
 		}
 
-		$UploadID   = urlencode($UploadID);
+		//$UploadID   = urlencode($UploadID);
 		$PartNumber = (int) $PartNumber;
 
 		$request = new Request('PUT', $bucket, $uri, $this->configuration);

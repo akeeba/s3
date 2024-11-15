@@ -416,12 +416,7 @@ class V4 extends Signature
 
 	private function urlencode(?string $toEncode): string
 	{
-		if (empty($toEncode))
-		{
-			return '';
-		}
-
-		return str_replace('+', '%20', urlencode($toEncode));
+		return empty($toEncode) ? '' : rawurlencode($toEncode);
 	}
 
 	/**
