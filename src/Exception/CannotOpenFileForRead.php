@@ -12,12 +12,12 @@ namespace Akeeba\S3\Exception;
 // Protection against direct access
 defined('AKEEBAENGINE') || die();
 
-use Exception;
 use RuntimeException;
+use Throwable;
 
 class CannotOpenFileForRead extends RuntimeException
 {
-	public function __construct(string $file = "", int $code = 0, Exception $previous = null)
+	public function __construct(string $file = "", int $code = 0, ?Throwable $previous = null)
 	{
 		$message = "Cannot open $file for reading";
 

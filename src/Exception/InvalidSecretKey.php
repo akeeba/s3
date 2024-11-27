@@ -12,14 +12,14 @@ namespace Akeeba\S3\Exception;
 // Protection against direct access
 defined('AKEEBAENGINE') || die();
 
-use Exception;
+use Throwable;
 
 /**
  * Invalid Amazon S3 secret key
  */
 class InvalidSecretKey extends ConfigurationError
 {
-	public function __construct(string $message = "", int $code = 0, Exception $previous = null)
+	public function __construct(string $message = "", int $code = 0, ?Throwable $previous = null)
 	{
 		if (empty($message))
 		{
