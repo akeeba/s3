@@ -578,7 +578,10 @@ class Request
 			);
 		}
 
-		@curl_close($curl);
+		if (version_compare(PHP_VERSION, '8.5.0', 'lt'))
+		{
+			@curl_close($curl);
+		}
 
 		// Set the body data
 		$this->response->finaliseBody($rawResponse);
