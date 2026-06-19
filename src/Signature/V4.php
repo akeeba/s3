@@ -246,9 +246,19 @@ class V4 extends Signature
 		 * which strips the `/bucketName/` prefix from the canonical URI, converting it to `/`. Therefore, the canonical
 		 * URI in the signature becomes the nominal URI we will be accessing in the bucket, solving the problem with
 		 * those third party services.
+		 *
+		 * IMPORTANT: this stripping is only correct when the bucket is NOT part of the URL path we will actually request,
+		 * i.e. when the bucket lives in the hostname (virtual-hosting style). When getPreSignedBucketInURL() is true we
+		 * deliberately keep the bucket as the first path component of the pre-signed URL (path-style access — required by
+		 * S3-compatible services reached through a host:port endpoint with no per-bucket DNS, such as a local MinIO). In
+		 * that case the bucket IS in the requested path, so the canonical URI must keep it too; stripping it here would
+		 * sign `/object` while requesting `/bucket/object`, which strict services reject with SignatureDoesNotMatch.
 		 */
 		// Figuring out whether it's a regional hostname DOES NOT work above if it's not AWS S3 proper. Let's fix that.
-		if ($isPresignedURL && strpos($headers['Host'], 'amazonaws.com') === false && !strpos($headers['Host'], $bucket . '.'))
+		if ($isPresignedURL
+		    && !$this->request->getConfiguration()->getPreSignedBucketInURL()
+		    && strpos($headers['Host'], 'amazonaws.com') === false
+		    && !strpos($headers['Host'], $bucket . '.'))
 		{
 			$regionalHostname = false;
 		}
