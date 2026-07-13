@@ -110,6 +110,22 @@ class Configuration
 	protected $preSignedBucketInURL = false;
 
 	/**
+	 * Maximum time, in seconds, to wait while trying to establish the connection to the S3 endpoint. A value of 0
+	 * (default) means no explicit limit, i.e. cURL's own default is used.
+	 *
+	 * @var  int
+	 */
+	protected $connectTimeout = 0;
+
+	/**
+	 * Maximum time, in seconds, allowed for the entire request to complete. A value of 0 (default) means no explicit
+	 * limit, i.e. the request is allowed to run for as long as it takes.
+	 *
+	 * @var  int
+	 */
+	protected $requestTimeout = 0;
+
+	/**
 	 * Public constructor
 	 *
 	 * @param   string  $access           Amazon S3 Access Key
@@ -443,5 +459,51 @@ class Configuration
 	public function setPreSignedBucketInURL(bool $preSignedBucketInURL): void
 	{
 		$this->preSignedBucketInURL = $preSignedBucketInURL;
+	}
+
+	/**
+	 * Get the maximum time, in seconds, to wait while establishing the connection to the S3 endpoint.
+	 *
+	 * @return  int  Timeout in seconds; 0 means no explicit limit.
+	 */
+	public function getConnectTimeout(): int
+	{
+		return $this->connectTimeout;
+	}
+
+	/**
+	 * Set the maximum time, in seconds, to wait while establishing the connection to the S3 endpoint.
+	 *
+	 * @param   int  $connectTimeout  Timeout in seconds; 0 (or any negative value, which is clamped to 0) means no
+	 *                                explicit limit.
+	 *
+	 * @return  void
+	 */
+	public function setConnectTimeout(int $connectTimeout): void
+	{
+		$this->connectTimeout = max(0, $connectTimeout);
+	}
+
+	/**
+	 * Get the maximum time, in seconds, allowed for the entire request to complete.
+	 *
+	 * @return  int  Timeout in seconds; 0 means no explicit limit.
+	 */
+	public function getRequestTimeout(): int
+	{
+		return $this->requestTimeout;
+	}
+
+	/**
+	 * Set the maximum time, in seconds, allowed for the entire request to complete.
+	 *
+	 * @param   int  $requestTimeout  Timeout in seconds; 0 (or any negative value, which is clamped to 0) means no
+	 *                                explicit limit.
+	 *
+	 * @return  void
+	 */
+	public function setRequestTimeout(int $requestTimeout): void
+	{
+		$this->requestTimeout = max(0, $requestTimeout);
 	}
 }

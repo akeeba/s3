@@ -400,6 +400,20 @@ class Request
 		$curl = curl_init();
 		curl_setopt($curl, CURLOPT_USERAGENT, 'AkeebaBackupProfessional/S3PostProcessor');
 
+		// Apply the optional connection and request timeouts. A value of 0 means "no explicit limit".
+		$connectTimeout = $this->configuration->getConnectTimeout();
+		$requestTimeout = $this->configuration->getRequestTimeout();
+
+		if ($connectTimeout > 0)
+		{
+			curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $connectTimeout);
+		}
+
+		if ($requestTimeout > 0)
+		{
+			curl_setopt($curl, CURLOPT_TIMEOUT, $requestTimeout);
+		}
+
 		if ($this->configuration->isSSL())
 		{
 			// Set the CA certificate cache location
