@@ -384,3 +384,7 @@ $configuration->setRequestTimeout(120);
 A value of `0` (the default) means no explicit limit is applied. Negative values are clamped to `0`.
 
 Caveat: `setRequestTimeout()` applies to the request as a whole. When you are uploading or downloading large objects you must allow enough time for the transfer to complete, otherwise the request will be aborted mid-transfer. If in doubt, leave it at its default of `0` (no limit).
+
+## Regulatory status (EU Cyber Resilience Act)
+
+Akeeba Amazon S3 Connector is not monetized and is not placed on the market within the meaning of Regulation (EU) 2024/2847; Akeeba Ltd acts as its open-source software steward under Article 24 of that Regulation
