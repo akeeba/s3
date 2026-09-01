@@ -611,7 +611,10 @@ class Input
 				$type = trim(array_shift($type));
 			}
 
-			finfo_close($finfo);
+			if (version_compare(PHP_VERSION, '8.5.0', 'lt'))
+			{
+				finfo_close($finfo);
+			}
 		}
 		elseif (function_exists('mime_content_type'))
 		{
