@@ -4,6 +4,9 @@ A compact, dependency-less Amazon S3 API client implementing the most commonly u
 
 This library is designed to work with Amazon S3 proper, as well as S3-compatible services such as but not limited to Wasabi, Google Storage, Synology C2, ExoScale etc.
 
+> [!IMPORTANT]
+> Developing and maintaining world-class software is neither easy nor free. The development of this software is subsidised by sales of our commercial offerings. If you like this software and would like to see it maintained in the future, please consider [purchasing a subscription](https://www.akeeba.com/subscribe.html) to one of our commercial offerings. _Thank you!_
+
 ## Why reinvent the wheel
 
 After having a lot of impossible to debug problems with Amazon's Guzzle-based AWS SDK we decided to roll our own connector for Amazon S3. This is by no means a complete implementation, just a small subset of S3's features which are required by our software. The design goals are simplicity, no external dependencies and a low memory footprint.
