@@ -31,7 +31,9 @@
 	"archive": {
 		"exclude": [
 			"minitest",
-			"TODO.md"
+			"TODO.md",
+			"/AGENTS.md",
+			"/.claude"
 		]
 	}
 }
