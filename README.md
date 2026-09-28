@@ -332,7 +332,7 @@ $configuration->setUseLegacyPathStyle(true);
 
 Caveats:
 * This will not work with v2 signatures if you are using Amazon AWS S3 proper. It will very likely work with the v2 signatures if you are using a custom endpoint, though.
-* This option has no effect on pre-authorised (pre-signed) URLs. Legacy path-style access is used for these URLs by default.
+* With v4 signatures, pre-authorised (pre-signed) URLs follow this option too: the bucket goes in the path. On Amazon S3 proper these URLs use the bucket's regional endpoint (`s3.eu-west-1.amazonaws.com/example/…` in our example above).
 
 ### Dualstack (IPv4 and IPv6) support
 

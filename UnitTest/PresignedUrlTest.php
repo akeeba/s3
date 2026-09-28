@@ -20,6 +20,9 @@ use PHPUnit\Framework\TestCase;
  *
  * Path-style access is the caller's choice (setUseLegacyPathStyle()): a pre-signed URL must follow it, or the
  * URL names a host such as bucket.minio:9000 which S3-compatible servers without per-bucket DNS never answer.
+ *
+ * On Amazon S3 proper, a URL with the bucket in the path must name the bucket's regional endpoint. The global
+ * s3.amazonaws.com only serves us-east-1 buckets that way and answers 301 PermanentRedirect for any other region.
  */
 #[CoversClass(Connector::class)]
 class PresignedUrlTest extends TestCase
@@ -35,8 +38,13 @@ class PresignedUrlTest extends TestCase
 			'v4 custom, path-style'               => ['v4', $custom + ['pathStyle' => true], 'https://storage.example.com:9000/my-bucket/some/key.txt?'],
 			'v4 custom, virtual-hosted'           => ['v4', $custom, 'https://my-bucket.storage.example.com:9000/some/key.txt?'],
 			'v4 custom, bucket-in-URL option'     => ['v4', $custom + ['bucketInUrl' => true], 'https://storage.example.com:9000/my-bucket/some/key.txt?'],
-			'v4 Amazon, path-style'               => ['v4', ['pathStyle' => true], 'https://s3.amazonaws.com/my-bucket/some/key.txt?'],
+			'v4 Amazon, path-style'               => ['v4', ['pathStyle' => true], 'https://s3.us-east-1.amazonaws.com/my-bucket/some/key.txt?'],
+			'v4 Amazon, bucket-in-URL option'     => ['v4', ['bucketInUrl' => true], 'https://s3.us-east-1.amazonaws.com/my-bucket/some/key.txt?'],
+			'v4 Amazon eu-west-1, path-style'     => ['v4', ['pathStyle' => true, 'region' => 'eu-west-1'], 'https://s3.eu-west-1.amazonaws.com/my-bucket/some/key.txt?'],
+			'v4 Amazon eu-west-1, bucket-in-URL'  => ['v4', ['bucketInUrl' => true, 'region' => 'eu-west-1'], 'https://s3.eu-west-1.amazonaws.com/my-bucket/some/key.txt?'],
+			'v4 Amazon China, path-style'         => ['v4', ['pathStyle' => true, 'region' => 'cn-northwest-1'], 'https://s3.cn-northwest-1.amazonaws.com.cn/my-bucket/some/key.txt?'],
 			'v4 Amazon, virtual-hosted'           => ['v4', [], 'https://my-bucket.s3.amazonaws.com/some/key.txt?'],
+			'v4 Amazon eu-west-1, virtual-hosted' => ['v4', ['region' => 'eu-west-1'], 'https://my-bucket.s3.amazonaws.com/some/key.txt?'],
 			'v2 custom, path-style'               => ['v2', $custom + ['pathStyle' => true], 'https://storage.example.com:9000/my-bucket/some/key.txt?'],
 		];
 	}
@@ -44,7 +52,7 @@ class PresignedUrlTest extends TestCase
 	#[DataProvider('provideConnections')]
 	public function testTheBucketGoesWhereTheConnectionSays(string $signature, array $setup, string $expectedPrefix): void
 	{
-		$config = new Configuration('AKIAEXAMPLE', 'secret', $signature, 'us-east-1');
+		$config = new Configuration('AKIAEXAMPLE', 'secret', $signature, $setup['region'] ?? 'us-east-1');
 
 		if (isset($setup['endpoint']))
 		{
@@ -53,6 +61,7 @@ class PresignedUrlTest extends TestCase
 
 		// After setEndpoint(), which switches non-Amazon endpoints to v2 (the order applications use)
 		$config->setSignatureMethod($signature);
+		$config->setRegion($setup['region'] ?? 'us-east-1');
 		$config->setUseLegacyPathStyle($setup['pathStyle'] ?? false);
 		$config->setPreSignedBucketInURL($setup['bucketInUrl'] ?? false);
 

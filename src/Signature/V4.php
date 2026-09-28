@@ -78,9 +78,10 @@ class V4 extends Signature
 		 */
 		$region   = $this->request->getConfiguration()->getRegion();
 		$bucket   = $this->request->getBucket();
-		$hostname = $this->getPresignedHostnameForRegion($region);
+		$bucketInPath = $this->request->getConfiguration()->getPreSignedBucketInURL() || !$this->isValidBucketName($bucket);
+		$hostname     = $this->getPresignedHostnameForRegion($region, $bucketInPath);
 
-		if (!$this->request->getConfiguration()->getPreSignedBucketInURL() && $this->isValidBucketName($bucket))
+		if (!$bucketInPath)
 		{
 			$hostname = $bucket . '.' . $hostname;
 		}
@@ -432,11 +433,12 @@ class V4 extends Signature
 	/**
 	 * Get the correct hostname for the given AWS region
 	 *
-	 * @param   string  $region
+	 * @param   string  $region        The bucket's region
+	 * @param   bool    $bucketInPath  Will the bucket be the first path component of the URL (path-style)?
 	 *
 	 * @return  string
 	 */
-	private function getPresignedHostnameForRegion(string $region): string
+	private function getPresignedHostnameForRegion(string $region, bool $bucketInPath = false): string
 	{
 		$config   = $this->request->getConfiguration();
 		$endpoint = $config->getEndpoint();
@@ -444,6 +446,17 @@ class V4 extends Signature
 		if (empty($endpoint))
 		{
 			$endpoint = 's3.' . $region . '.amazonaws.com';
+		}
+
+		/**
+		 * With the bucket in the path, Amazon S3 proper must be reached through the bucket's regional endpoint. The
+		 * global s3.amazonaws.com (or amazonaws.com.cn) only serves us-east-1 buckets that way and answers 301
+		 * PermanentRedirect for every other region. Virtual-hosted URLs (bucket.s3.amazonaws.com) are routed to the
+		 * right region by DNS, so they are left alone.
+		 */
+		if ($bucketInPath && !empty($region) && in_array($endpoint, ['s3.amazonaws.com', 'amazonaws.com.cn']))
+		{
+			return 's3.' . $region . '.amazonaws.com' . (substr($region, 0, 3) == 'cn-' ? '.cn' : '');
 		}
 
 		// As of October 2023, AWS does not consider DualStack signed URLs as valid. Whatever.
