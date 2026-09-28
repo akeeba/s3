@@ -39,6 +39,7 @@ something new worth remembering, add a topic file and a row to this table mappin
 |---|---|
 | change TLS host name verification, host name building or path-style access | [`.claude/memory/tls-host-verification.md`](.claude/memory/tls-host-verification.md) |
 | change what a `Configuration` setter or `Connector` method does | [`.claude/memory/callers-and-compatibility.md`](.claude/memory/callers-and-compatibility.md) |
+| write or change a test asserting Amazon host names or URLs | [`.claude/memory/amazon-url-expectations.md`](.claude/memory/amazon-url-expectations.md) |
 
 ### Recording new memories
 
