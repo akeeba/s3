@@ -9,6 +9,15 @@ It works with Amazon S3 proper and with S3-compatible services. Code lives under
 namespace (`src/aliasing.php` provides the legacy-namespace aliases); see `README.md` for usage and the
 supported configuration options.
 
+## Tests
+
+- **Unit tests**: `composer test` (runs PHPUnit 11, installed globally: `composer global require phpunit/phpunit`;
+  config `phpunit.xml`, tests in `UnitTest/`; needs `composer install`). No network, no S3 account.
+- `UnitTest/CurlRecorder.php` shadows `curl_setopt()` / `curl_exec()` in the `Akeeba\S3` namespace, so a test can
+  assert the cURL options `Request::getResponse()` really sets without connecting anywhere.
+- `minitest/` is the separate, manual suite that runs against real buckets (`minitest/config.php`).
+- Library files exit silently unless `AKEEBAENGINE` is defined; the unit test bootstrap defines it.
+
 ## Git: commit and tag outside the sandbox
 
 Commits and tags are always signed, with a key held in 1Password. The 1Password signing agent is reached

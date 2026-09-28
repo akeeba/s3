@@ -28,9 +28,14 @@
 			"src/aliasing.php"
 		]
 	},
+	"scripts": {
+		"test": "phpunit"
+	},
 	"archive": {
 		"exclude": [
 			"minitest",
+			"/UnitTest",
+			"/phpunit.xml",
 			"TODO.md",
 			"/AGENTS.md",
 			"/.claude"

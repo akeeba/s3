@@ -4,3 +4,5 @@
 !/minitest/config.dist.php
 /minitest/tmp
 /vendor/
+/.phpunit.result.cache
+/.phpunit.cache/

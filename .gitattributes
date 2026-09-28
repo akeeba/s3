@@ -1,3 +1,7 @@
 # Agent instructions and project memory are for development only
 /AGENTS.md export-ignore
 /.claude    export-ignore
+
+# Unit tests are for development only
+/UnitTest    export-ignore
+/phpunit.xml export-ignore
