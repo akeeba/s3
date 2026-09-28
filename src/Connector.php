@@ -367,6 +367,18 @@ class Connector
 		$newConfig = clone $this->configuration;
 		$newConfig->setUseLegacyPathStyle(true);
 
+		/**
+		 * The clone above hides whether the caller chose path-style access, and the v4 signer decides where the
+		 * bucket goes from getPreSignedBucketInURL() alone. Honour the caller's choice: with path-style access the
+		 * bucket stays in the path of the pre-signed URL, as the signer already supports. Without this, a v4
+		 * pre-signed URL for a path-style connection named a host such as bucket.endpoint, which S3-compatible
+		 * servers without per-bucket DNS never answer.
+		 */
+		if ($this->configuration->getUseLegacyPathStyle())
+		{
+			$newConfig->setPreSignedBucketInURL(true);
+		}
+
 		// Create the request object.
 		$request = new Request('GET', $bucket, $uri, $newConfig);
 
