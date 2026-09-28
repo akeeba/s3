@@ -126,6 +126,14 @@ class Configuration
 	protected $requestTimeout = 0;
 
 	/**
+	 * Add a dump of the S3 error body ("Debug info") to exception messages? Off by default: exception messages are
+	 * often shown to people. The signed request S3 echoes back on signature errors is never included.
+	 *
+	 * @var  bool
+	 */
+	protected $debug = false;
+
+	/**
 	 * Public constructor
 	 *
 	 * @param   string  $access           Amazon S3 Access Key
@@ -505,5 +513,28 @@ class Configuration
 	public function setRequestTimeout(int $requestTimeout): void
 	{
 		$this->requestTimeout = max(0, $requestTimeout);
+	}
+
+	/**
+	 * Is the dump of the S3 error body ("Debug info") added to exception messages?
+	 *
+	 * @return  bool
+	 */
+	public function getDebug(): bool
+	{
+		return $this->debug;
+	}
+
+	/**
+	 * Add a dump of the S3 error body ("Debug info") to exception messages? The signed request S3 echoes back on
+	 * signature errors (StringToSign, CanonicalRequest, SignatureProvided) is never included.
+	 *
+	 * @param   bool  $debug
+	 *
+	 * @return  void
+	 */
+	public function setDebug(bool $debug): void
+	{
+		$this->debug = $debug;
 	}
 }
