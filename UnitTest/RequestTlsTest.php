@@ -21,7 +21,8 @@ use PHPUnit\Framework\TestCase;
  * Host name verification may only be turned off when the host name has more labels than Amazon's
  * wildcard certificate can match, i.e. when a dotted bucket name is used with virtual-hosted access. The
  * number of dots Amazon's own endpoint contributes depends on the endpoint: the dual-stack endpoint
- * (s3.dualstack.REGION.amazonaws.com) has one more than the plain one (s3.REGION.amazonaws.com).
+ * (s3.dualstack.REGION.amazonaws.com) has one more than the plain one (s3.REGION.amazonaws.com), and the
+ * China endpoints (….amazonaws.com.cn) have one more again.
  */
 #[CoversClass(Request::class)]
 class RequestTlsTest extends TestCase
@@ -41,6 +42,8 @@ class RequestTlsTest extends TestCase
 		$v4       = ['signature' => 'v4', 'region' => 'us-east-1'];
 		$dual     = ['dualstack' => true] + $v4;
 		$path     = ['pathStyle' => true];
+		$cn       = ['signature' => 'v4', 'region' => 'cn-north-1'];
+		$cnDual   = ['dualstack' => true] + $cn;
 
 		return [
 			// Plain regional endpoint: bucket.s3.us-east-1.amazonaws.com
@@ -49,6 +52,11 @@ class RequestTlsTest extends TestCase
 			// Dual-stack endpoint: bucket.s3.dualstack.us-east-1.amazonaws.com
 			'v4 dual-stack, plain bucket'        => [$dual, 'mybucket', 'mybucket.s3.dualstack.us-east-1.amazonaws.com', 2],
 			'v4 dual-stack, dotted bucket'       => [$dual, 'my.bucket', 'my.bucket.s3.dualstack.us-east-1.amazonaws.com', 0],
+			// China: the endpoint ends in amazonaws.com.cn, one more dot (bucket.s3.cn-north-1.amazonaws.com.cn)
+			'China, plain bucket'                => [$cn, 'mybucket', 'mybucket.s3.cn-north-1.amazonaws.com.cn', 2],
+			'China, dotted bucket'               => [$cn, 'my.bucket', 'my.bucket.s3.cn-north-1.amazonaws.com.cn', 0],
+			'China dual-stack, plain bucket'     => [$cnDual, 'mybucket', 'mybucket.s3.dualstack.cn-north-1.amazonaws.com.cn', 2],
+			'China dual-stack, dotted bucket'    => [$cnDual, 'my.bucket', 'my.bucket.s3.dualstack.cn-north-1.amazonaws.com.cn', 0],
 			// Path-style: the bucket is not part of the host name, so nothing can ever trip verification
 			'v4 dual-stack path, dotted bucket'  => [$dual + $path, 'my.bucket', 's3.dualstack.us-east-1.amazonaws.com', 2],
 			'v4 path, dotted bucket'             => [$v4 + $path, 'my.bucket', 's3.us-east-1.amazonaws.com', 2],

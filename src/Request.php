@@ -439,14 +439,16 @@ class Request
 			 *
 			 * Amazon's wildcard certificate matches exactly one label in front of the endpoint. A regional endpoint
 			 * (bucket.s3.REGION.amazonaws.com) has 4 dots; the dual-stack endpoint
-			 * (bucket.s3.dualstack.REGION.amazonaws.com) has one more. Only a host with more dots than that has a
-			 * bucket name the certificate cannot match.
+			 * (bucket.s3.dualstack.REGION.amazonaws.com) has one more, and so do the China endpoints
+			 * (….amazonaws.com.cn). Only a host with more dots than that has a bucket name the certificate cannot
+			 * match.
 			 */
 			$isAmazonS3  = (substr($this->headers['Host'], -14) == '.amazonaws.com')
 			               || substr(
 				                  $this->headers['Host'], -16
 			                  ) == 'amazonaws.com.cn';
-			$maxDots     = $this->configuration->getDualstackUrl() ? 5 : 4;
+			$maxDots     = 4 + ($this->configuration->getDualstackUrl() ? 1 : 0)
+			               + (substr($this->headers['Host'], -16) == 'amazonaws.com.cn' ? 1 : 0);
 			$tooManyDots = substr_count($this->headers['Host'], '.') > $maxDots;
 
 			$verifyHost = ($isAmazonS3 && $tooManyDots) ? 0 : 2;

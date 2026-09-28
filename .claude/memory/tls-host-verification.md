@@ -1,7 +1,8 @@
 # TLS host name verification for Amazon S3
 
 `Request::getResponse()` turns `CURLOPT_SSL_VERIFYHOST` off only for Amazon hosts with more dots than the
-endpoint itself contributes: 4 for `bucket.s3.REGION.amazonaws.com`, 5 when the `dualstack` option is on.
+endpoint itself contributes: 4 for `bucket.s3.REGION.amazonaws.com`, plus 1 when the `dualstack` option is
+on, plus 1 for the China endpoints (`….amazonaws.com.cn`).
 
 - Decide by counting the dots of the **whole host name**, adjusted for the endpoint shape. Do **not** switch
   to checking only whether the bucket name contains a dot.
