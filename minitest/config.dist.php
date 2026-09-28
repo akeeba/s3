@@ -79,6 +79,7 @@ $allTheTests = [
 	'Multipart',
 	'StorageClasses',
 	'SignedURLs',
+	'EngineStyle',
 ];
 
 if (CREATE_2100_FILES)
@@ -103,6 +104,7 @@ $standardTests = [
 	'Multipart',
 	'StorageClasses',
 	'SignedURLs',
+	'EngineStyle',
 ];
 
 /**
