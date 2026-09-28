@@ -36,6 +36,7 @@
 			"minitest",
 			"/UnitTest",
 			"/phpunit.xml",
+			"/rector.php",
 			"TODO.md",
 			"/AGENTS.md",
 			"/.claude"

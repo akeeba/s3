@@ -5,3 +5,7 @@
 # Unit tests are for development only
 /UnitTest    export-ignore
 /phpunit.xml export-ignore
+
+# Development tools
+/minitest    export-ignore
+/rector.php  export-ignore
