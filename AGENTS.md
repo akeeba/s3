@@ -32,9 +32,12 @@ with `--no-gpg-sign`, `-c commit.gpgsign=false` or unsigned tags.
 ## Project memory
 
 Project memory lives in `.claude/memory/`, committed with the code, so that it is shared across machines
-and across agentic harnesses (Claude Code, Codex, Qwen Code, Kimi Code, Junie, …). There are no memory
-files yet. When there is something worth remembering, create `.claude/memory/`, the topic file, and a
-table here mapping each file to a concrete trigger ("Before you… | Read").
+and across agentic harnesses (Claude Code, Codex, Qwen Code, Kimi Code, Junie, …). When there is
+something new worth remembering, add a topic file and a row to this table mapping it to a concrete trigger.
+
+| Before you… | Read |
+|---|---|
+| change TLS host name verification, host name building or path-style access | [`.claude/memory/tls-host-verification.md`](.claude/memory/tls-host-verification.md) |
 
 ### Recording new memories
 

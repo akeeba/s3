@@ -436,12 +436,18 @@ class Request
 			 *
 			 * Caveat: if your bucket contains dots in the name we have to turn off host verification due to the way the
 			 * S3 SSL certificates are set up.
+			 *
+			 * Amazon's wildcard certificate matches exactly one label in front of the endpoint. A regional endpoint
+			 * (bucket.s3.REGION.amazonaws.com) has 4 dots; the dual-stack endpoint
+			 * (bucket.s3.dualstack.REGION.amazonaws.com) has one more. Only a host with more dots than that has a
+			 * bucket name the certificate cannot match.
 			 */
 			$isAmazonS3  = (substr($this->headers['Host'], -14) == '.amazonaws.com')
 			               || substr(
 				                  $this->headers['Host'], -16
 			                  ) == 'amazonaws.com.cn';
-			$tooManyDots = substr_count($this->headers['Host'], '.') > 4;
+			$maxDots     = $this->configuration->getDualstackUrl() ? 5 : 4;
+			$tooManyDots = substr_count($this->headers['Host'], '.') > $maxDots;
 
 			$verifyHost = ($isAmazonS3 && $tooManyDots) ? 0 : 2;
 
