@@ -288,7 +288,7 @@ Caveat: HTTPS will only work if PHP can verify the TLS certificate of your endpo
 
 You can use the Akeeba Amazon S3 Connector library with S3-compatible APIs such as DigitalOcean's Spaces by changing the endpoint URL.
 
-Please note that if the S3-compatible APi uses v4 signatures you need to enter the region-specific endpoint domain name and the region when initializing the object, e.g.:
+If the S3-compatible API uses v4 signatures, enter the region-specific endpoint domain name, and the region when initializing the object. Setting the endpoint does not change the signature method or the region you chose. For example:
 
 ```php
 // DigitalOcean Spaces using v4 signatures
@@ -300,8 +300,6 @@ $configuration = new \Akeeba\S3\Configuration(
     'nyc3'
 );
 $configuration->setEndpoint('nyc3.digitaloceanspaces.com');
-$configuration->setRegion('nyc3');
-$configuration->setSignatureMethod('v4');
 
 $connector = new \Akeeba\S3\Connector($configuration);
 ```
@@ -320,8 +318,6 @@ $configuration->setEndpoint('nyc3.digitaloceanspaces.com');
 
 $connector = new \Akeeba\S3\Connector($configuration);
 ```
-
-Caveat: Setting the endpoint resets the signature version and region. This is why you need to set them _a second time_, after setting the endpoint, as seen in the first example above.
 
 ### Legacy path-style access
 

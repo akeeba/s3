@@ -351,14 +351,10 @@ class Configuration
 		}
 
 		/**
-		 * If you set a custom endpoint we have to switch to v2 signatures since our v4 implementation only supports
-		 * Amazon endpoints.
+		 * The signature method and region are the caller's to choose, for custom endpoints too: v4 works with
+		 * S3-compatible services. This used to switch any non-Amazon endpoint to v2, which also emptied the region,
+		 * so a caller setting v4 again got requests signed for region "".
 		 */
-		if ((strpos($endpoint, 'amazonaws.com') === false))
-		{
-			$this->setSignatureMethod('v2');
-		}
-
 		$this->endpoint = $endpoint;
 	}
 
