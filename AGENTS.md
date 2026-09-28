@@ -38,6 +38,7 @@ something new worth remembering, add a topic file and a row to this table mappin
 | Before you… | Read |
 |---|---|
 | change TLS host name verification, host name building or path-style access | [`.claude/memory/tls-host-verification.md`](.claude/memory/tls-host-verification.md) |
+| change what a `Configuration` setter or `Connector` method does | [`.claude/memory/callers-and-compatibility.md`](.claude/memory/callers-and-compatibility.md) |
 
 ### Recording new memories
 
