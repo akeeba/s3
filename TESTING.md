@@ -1,14 +1,25 @@
-# Testing
+# Automated testing
+
+There are two levels of automated tests we use when developing the library.
 
 ## Unit tests
 
-`composer test:unit` (or `phpunit`). PHPUnit 11 with `phpunit.xml`, tests in `UnitTest/`. No network, no S3 account.
-`UnitTest/CurlRecorder.php` records the cURL options the library sets, without connecting anywhere.
+**Unit tests** test the implementation of the library's internals against the way we intend them to work. They are used primarily to prevent regressions, but they do not really give us any information about how the library performs in the real world, against real storage providers. They take a second or two to run.
+
+Run with `composer test:unit` (or just `phpunit`).
+
+The unit tests are implemented with PHPUnit 11. The unit test suite is in the `phpunit.xml` file. The test classes are under `UnitTest/`. 
+
+The unit test suite requires no network and no S3 account. The `UnitTest/CurlRecorder.php` class records the cURL options the library sets, without connecting anywhere.
 
 ## Integration tests
 
-PHPUnit suite (`integration`, `phpunit.integration.xml`, tests in `IntegrationTest/Tests/`) which exercises the
-library against **real** S3 and S3-compatible services. It replaces the old `minitest` harness.
+**Integration tests** exercise the library's features against real-world storage provider implementations. These are the tests which incover the subtle inconsistencies between documented behaviour and the real world, or how various S3-compatible implementations are subtly incompatible with Amazon S3 proper in some cases. They take several minutes per provider to run, depending on network conditions.
+
+The integration tests are implemented with PHPUnit 11. The integration test suite is in the `phpunit.integration.xml` file. The test classes are under `IntegrationTest/Tests/`.
+
+> [!NOTE]
+> The integration tests suite replaces our previous, custom `minitest` harness.
 
 ### Commands
 
@@ -24,31 +35,39 @@ library against **real** S3 and S3-compatible services. It replaces the old `min
 | `composer minio:up` / `minio:down` | Start / remove the container yourself |
 | `composer test` / `phing test` | Unit tests, then the integration tests (a notice only without `.env.test`) |
 
-⚠️ A full run against several real services takes _hours_. `SignedURLs` (`--filter`) is a quick sanity check across
-services; run the rest overnight.
+> [!WARNING]
+> A full run against several real services can take _hours_. Just running `SignedURLs` (`--filter SignedURLs`) is a quick sanity check across services to ascertain compatibility. The rest should run overnight / in a CI environment.
 
-### Environments: `.env.test`
+### Environments
+
+The S3-compatible services the library is exercised against are configured in the `.env.test` environment file. 
 
 Copy `.env.test.dist` to `.env.test` (git-ignored; never commit credentials). Every `<PREFIX>_ACCESS_KEY` (with a
 `<PREFIX>_BUCKET`) defines an environment, e.g. `DEFAULT_`, `C2_`, `WASABI_`, `MINIO_`. The settings are listed
 in the sample. Real environment variables override the file, so CI can inject credentials without a file.
 
-To run PHPUnit by hand against one environment: `S3_TEST_ENV=C2 phpunit -c phpunit.integration.xml`.
+To run PHPUnit by hand against one environment: `S3_TEST_ENV=C2 phpunit -c phpunit.integration.xml`. Alternatively, use `composer test:integration -- --env=C2`.
 
 `<PREFIX>_PERMISSIONS` says what the key pair may do: `full` (default) runs the standard classes; `no-delete`
 (archival buckets) runs only the `*NoDelete*` classes; `write-only` runs only the `*OnlyUpload*` classes. Other
 classes skip themselves.
 
-### Notes per service
+### Default test targets
 
-* **Amazon S3 proper** is the canonical target: not all of its quirks are documented. Test several regions
-  (us-east-1, eu-west-1, a v4-only region such as eu-central-1).
-* **Wasabi** nominally supports v4 signatures but reads the date only from `x-amz-date`; the library therefore always
-  sends it. Endpoint, region and the bucket's region must match, or the tests fail.
-* **Synology C2** implements Amazon's _documentation_ of v4 dates, not what Amazon does; the library works around it.
-  The region is the part of the endpoint before `.s3.` (`eu-002`), which they do not document.
-* **MinIO** runs in Docker (`IntegrationTest/docker/compose.yml`, image pinned to a release; override with
-  `MINIO_IMAGE`) and is good for development and CI: free, fast, no account. The bucket `test` is created by a
-  one-shot `mc` container. Only path-style access works over plain HTTP at `localhost:9000`, so
-  `MINIO_VIRTUAL_HOSTS=false` skips the one test needing `bucket.host` names. It is an emulation: where it differs
-  from Amazon S3, Amazon is right (see `.claude/memory/amazon-url-expectations.md`).
+At a minimum, we recommend testing against the following services.
+
+#### Amazon S3
+
+Amazon S3 proper is the canonical target.
+
+During the development and testing of this library, we found that Amazon's documentation has minor errors and inconsistencies compared to how S3 _actually_ works. When the documentation disagrees with the observed behaviourm we consider the observed real-world behaviour the canonical implementation target.
+
+We also note that the observed behaviour may be different depending on the region. `us-east-1` is the default region, allowing you to list buckets from other regions but not use them without then switching to the bucket's region. Newer regions which only support v4 signatures (e.g. `eu-central-1`) will of course refuse to work with v2 signatures. If you are running your own tests take these differences into account.
+
+#### MinIO
+
+MinIO runs in Docker and is good for development and CI: it's free, fast, and requires no account on any third party service. 
+
+We treat MinIO merely as an emulation, not as a reference implementation. Where it differs from Amazon S3 proper, Amazon is right. That said, it's our default environment to test features in development. The full integration suite against multiple real-world services only runs when we are considering a release, when we address a service-specific quirk, or when we suspect a change may exhibit different behaviour across different providers.
+
+The MinIO containers are set up in the `IntegrationTest/docker/compose.yml` file, with the image pinned to a specific release; override with `MINIO_IMAGE`. The bucket `test` is created by a one-shot `mc` container. Only path-style access works over plain HTTP at the default bound address `localhost:9000`, so `MINIO_VIRTUAL_HOSTS=false` skips the one test needing `bucket.host` names. 
