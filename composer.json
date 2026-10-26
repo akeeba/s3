@@ -34,8 +34,14 @@
 			"@test:integration"
 		],
 		"test:unit": "phpunit",
-		"test:integration": "@php IntegrationTest/run.php --skip-if-unconfigured",
-		"test:minio": "@php IntegrationTest/run.php --env=MINIO --docker",
+		"test:integration": [
+			"Composer\\Config::disableProcessTimeout",
+			"@php IntegrationTest/run.php --skip-if-unconfigured"
+		],
+		"test:minio": [
+			"Composer\\Config::disableProcessTimeout",
+			"@php IntegrationTest/run.php --env=MINIO --docker"
+		],
 		"minio:up": [
 			"docker compose -f IntegrationTest/docker/compose.yml up -d --wait minio",
 			"docker compose -f IntegrationTest/docker/compose.yml --profile init run --rm create-bucket"

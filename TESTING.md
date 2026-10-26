@@ -35,6 +35,12 @@ The integration tests are implemented with PHPUnit 11. The integration test suit
 | `composer minio:up` / `minio:down` | Start / remove the container yourself |
 | `composer test` / `phing test` | Unit tests, then the integration tests (a notice only without `.env.test`) |
 
+> [!NOTE]
+> The `test:integration` and `test:minio` scripts disable Composer's 300-second `process-timeout`, which would
+> otherwise kill the runner halfway through a long run against live services (leaving PHPUnit orphaned in the
+> background, still printing). To bypass Composer entirely, run `php IntegrationTest/run.php [options]` — it takes
+> the same options as the table above.
+
 > [!WARNING]
 > A full run against several real services can take _hours_. Just running `SignedURLs` (`--filter SignedURLs`) is a quick sanity check across services to ascertain compatibility. The rest should run overnight / in a CI environment.
 
@@ -70,4 +76,4 @@ MinIO runs in Docker and is good for development and CI: it's free, fast, and re
 
 We treat MinIO merely as an emulation, not as a reference implementation. Where it differs from Amazon S3 proper, Amazon is right. That said, it's our default environment to test features in development. The full integration suite against multiple real-world services only runs when we are considering a release, when we address a service-specific quirk, or when we suspect a change may exhibit different behaviour across different providers.
 
-The MinIO containers are set up in the `IntegrationTest/docker/compose.yml` file, with the image pinned to a specific release; override with `MINIO_IMAGE`. The bucket `test` is created by a one-shot `mc` container. Only path-style access works over plain HTTP at the default bound address `localhost:9000`, so `MINIO_VIRTUAL_HOSTS=false` skips the one test needing `bucket.host` names. 
+The MinIO containers are set up in the `IntegrationTest/docker/compose.yml` file, with the image pinned to a specific release; override with `MINIO_IMAGE`. The bucket `test` is created by a one-shot `mc` container. Only path-style access works over plain HTTP at the default bound address `127.0.0.1:9000` (not `localhost`, which resolves to `::1` first; Docker does not publish that and the connection hangs), so `MINIO_VIRTUAL_HOSTS=false` skips the one test needing `bucket.host` names. 
