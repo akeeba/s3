@@ -551,11 +551,12 @@ class Connector
 
 		if ($detailed)
 		{
-			if (isset($response->body->Owner, $response->body->Owner->ID, $response->body->Owner->DisplayName))
+			// Amazon no longer sends Owner/DisplayName, only Owner/ID. The name is empty when it is not sent.
+			if (isset($response->body->Owner, $response->body->Owner->ID))
 			{
 				$results['owner'] = [
 					'id'   => (string) $response->body->Owner->ID,
-					'name' => (string) $response->body->Owner->DisplayName,
+					'name' => (string) ($response->body->Owner->DisplayName ?? ''),
 				];
 			}
 

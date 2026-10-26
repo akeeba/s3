@@ -22,7 +22,8 @@ class BucketsList extends AbstractTest
 		static::assert(is_array($buckets), "Detailed buckets list is not an array");
 		static::assert(isset($buckets['owner']), "Detailed buckets list does not list an owner");
 		static::assert(isset($buckets['owner']['id']), "Detailed buckets list does not list an owner's id");
-		static::assert(isset($buckets['owner']['name']), "Detailed buckets list does not list an owner's name");
+		// Amazon no longer sends the owner's display name, so the name may legitimately be an empty string.
+		static::assert(is_string($buckets['owner']['name'] ?? null), "Detailed buckets list does not list an owner's name");
 		static::assert(isset($buckets['buckets']), "Detailed buckets list does not list any buckets");
 
 		foreach ($buckets['buckets'] as $bucketInfo)

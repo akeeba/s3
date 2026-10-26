@@ -130,6 +130,8 @@ array(2) {
 }
 ```
 
+Amazon no longer sends the owner's display name, so `owner.name` is an empty string unless the service provides one.
+
 ### Listing bucket contents
 
 ```php
