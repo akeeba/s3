@@ -54,6 +54,14 @@
 			"/phpunit.integration.xml",
 			"/build.xml",
 			"/TESTING.md",
+			"/mempalace.yaml",
+			"/.env.test",
+			"/minitest",
+			"/.idea",
+			"/.junie",
+			"/.phpunit.cache",
+			"/.phpunit.result.cache",
+			"/vendor",
 			"/.env.test.dist"
 		]
 	},

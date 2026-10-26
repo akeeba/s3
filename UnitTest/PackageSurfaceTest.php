@@ -30,6 +30,8 @@ class PackageSurfaceTest extends TestCase
 		return [
 			'integration tests'       => ['IntegrationTest'],
 			'integration PHPUnit cfg' => ['phpunit.integration.xml'],
+			'local credentials'       => ['.env.test'],
+			'old minitest harness'    => ['minitest'],
 			'integration env sample'  => ['.env.test.dist'],
 			'testing instructions'    => ['TESTING.md'],
 			'Phing build file'        => ['build.xml'],
@@ -37,6 +39,9 @@ class PackageSurfaceTest extends TestCase
 			'unit tests'              => ['UnitTest'],
 			'PHPUnit config'          => ['phpunit.xml'],
 			'agent notes'             => ['AGENTS.md'],
+			'PHPUnit cache dir'       => ['.phpunit.cache'],
+			'PHPUnit result cache'    => ['.phpunit.result.cache'],
+			'MemPalace config'        => ['mempalace.yaml'],
 			'project memory'          => ['.claude'],
 		];
 	}

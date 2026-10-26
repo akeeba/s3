@@ -1,6 +1,7 @@
 # Agent instructions and project memory are for development only
 /AGENTS.md export-ignore
 /.claude    export-ignore
+/mempalace.yaml export-ignore
 
 # Unit tests are for development only
 /UnitTest    export-ignore
@@ -12,6 +13,12 @@
 /build.xml export-ignore
 /TESTING.md export-ignore
 /.env.test.dist export-ignore
+/.env.test export-ignore
+/.phpunit.cache export-ignore
+/.phpunit.result.cache export-ignore
+
+# Leftover of the removed minitest harness; its config.php holds live credentials on some machines
+/minitest export-ignore
 
 # Development tools
 /rector.php  export-ignore
