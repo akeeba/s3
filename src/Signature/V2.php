@@ -156,6 +156,28 @@ class V2 extends Signature
 			$resourcePath = '/' . $bucket . $resourcePath;
 		}
 
+		/**
+		 * The response-* overrides (e.g. response-content-disposition) are sub-resources: v2 signatures cover them,
+		 * sorted by name, with their values URL-decoded. Without this, S3 answers 403 SignatureDoesNotMatch.
+		 */
+		$overrides = array_filter($parameters, function ($key) {
+			return strpos((string) $key, 'response-') === 0;
+		}, ARRAY_FILTER_USE_KEY);
+
+		if (count($overrides))
+		{
+			ksort($overrides);
+
+			$pairs = [];
+
+			foreach ($overrides as $key => $value)
+			{
+				$pairs[] = $key . '=' . $value;
+			}
+
+			$resourcePath .= (strpos($resourcePath, '?') === false ? '?' : '&') . implode('&', $pairs);
+		}
+
 		$stringToSign = $verb . "\n" .
 			($headers['Content-MD5'] ?? '') . "\n" .
 			($headers['Content-Type'] ?? '') . "\n" .
