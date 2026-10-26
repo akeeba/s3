@@ -11,11 +11,15 @@ supported configuration options.
 
 ## Tests
 
-- **Unit tests**: `composer test` (runs PHPUnit 11, installed globally: `composer global require phpunit/phpunit`;
+- **Unit tests**: `composer test:unit` (runs PHPUnit 11, installed globally: `composer global require phpunit/phpunit`;
   config `phpunit.xml`, tests in `UnitTest/`; needs `composer install`). No network, no S3 account.
+- **Integration tests**: `composer test:integration` runs the PHPUnit `integration` suite (`phpunit.integration.xml`,
+  tests in `IntegrationTest/Tests/`) against every S3 environment defined in the git-ignored `.env.test` (sample:
+  `.env.test.dist`; variables are grouped by prefix, e.g. `C2_ACCESS_KEY`). `composer test:minio` runs it against
+  a throwaway MinIO container. Details in `TESTING.md`. Needs real services, can take hours.
+- `composer test` runs the unit tests, then the integration tests (skipped with a notice when there is no `.env.test`).
 - `UnitTest/CurlRecorder.php` shadows `curl_setopt()` / `curl_exec()` in the `Akeeba\S3` namespace, so a test can
   assert the cURL options `Request::getResponse()` really sets without connecting anywhere.
-- `minitest/` is the separate, manual suite that runs against real buckets (`minitest/config.php`).
 - Library files exit silently unless `AKEEBAENGINE` is defined; the unit test bootstrap defines it.
 
 ## Git: commit and tag outside the sandbox

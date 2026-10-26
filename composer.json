@@ -29,17 +29,40 @@
 		]
 	},
 	"scripts": {
-		"test": "phpunit"
+		"test": [
+			"@test:unit",
+			"@test:integration"
+		],
+		"test:unit": "phpunit",
+		"test:integration": "@php IntegrationTest/run.php --skip-if-unconfigured",
+		"test:minio": "@php IntegrationTest/run.php --env=MINIO --docker",
+		"minio:up": [
+			"docker compose -f IntegrationTest/docker/compose.yml up -d --wait minio",
+			"docker compose -f IntegrationTest/docker/compose.yml --profile init run --rm create-bucket"
+		],
+		"minio:down": "docker compose -f IntegrationTest/docker/compose.yml down -v --remove-orphans"
 	},
 	"archive": {
 		"exclude": [
-			"minitest",
 			"/UnitTest",
 			"/phpunit.xml",
 			"/rector.php",
 			"TODO.md",
 			"/AGENTS.md",
-			"/.claude"
+			"/.claude",
+			"/IntegrationTest",
+			"/phpunit.integration.xml",
+			"/build.xml",
+			"/TESTING.md",
+			"/.env.test.dist"
 		]
+	},
+	"scripts-descriptions": {
+		"test": "Run the unit tests, then the integration tests against every environment in .env.test (if any)",
+		"test:unit": "Run the unit tests. No network, no S3 account",
+		"test:integration": "Run the integration suite against each environment in .env.test. Options: --env=A,B --quick --list -- <phpunit args>",
+		"test:minio": "Start MinIO in Docker, run the integration suite against it, stop it",
+		"minio:up": "Start the MinIO container with the test bucket",
+		"minio:down": "Stop the MinIO container and delete its data"
 	}
 }

@@ -1,8 +1,8 @@
 /.idea/
 /000/
-/minitest/config.*
-!/minitest/config.dist.php
-/minitest/tmp
+/.env.test
+# Leftover of the removed minitest harness: its config.php holds live credentials. Delete it and this line.
+/minitest/
 /vendor/
 /.phpunit.result.cache
 /.phpunit.cache/

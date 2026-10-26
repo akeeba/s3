@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="akeeba-s3" default="test" basedir=".">
+    <!-- Delegates to composer, which knows how to run the unit and integration suites. -->
+    <target name="test" description="Run the unit tests, then the integration tests (if .env.test exists)">
+        <exec executable="composer" dir="${project.basedir}" passthru="true" checkreturn="true">
+            <arg value="test"/>
+        </exec>
+    </target>
+</project>

@@ -14,5 +14,5 @@ connection. That enshrined the bug instead of catching it; it broke Akeeba Backu
 buckets outside us-east-1 until ce87df8.
 
 **How to apply:** for a change to host names or pre-signed URLs, check the expectation against Amazon's
-documentation, and confirm live against a bucket outside us-east-1 (minitest) before pushing. See also
+documentation, and confirm live against a bucket outside us-east-1 (`composer test:integration`) before pushing. See also
 [callers-and-compatibility.md](callers-and-compatibility.md).

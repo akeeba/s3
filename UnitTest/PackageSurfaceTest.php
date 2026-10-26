@@ -17,8 +17,8 @@ use PHPUnit\Framework\TestCase;
  *
  * Composer installs this library from the GitHub archive, which honours .gitattributes export-ignore; a
  * `composer archive` honours composer.json's archive excludes. Applications bundling the library would
- * otherwise ship minitest/, an executable harness which runs S3 tests against real buckets once a
- * config.php sits next to it.
+ * otherwise ship IntegrationTest/, an executable harness which runs S3 tests against real buckets once a
+ * .env.test sits in the repository root.
  */
 class PackageSurfaceTest extends TestCase
 {
@@ -28,12 +28,16 @@ class PackageSurfaceTest extends TestCase
 	public static function provideDevelopmentPaths(): array
 	{
 		return [
-			'minitest harness' => ['minitest'],
-			'Rector config'    => ['rector.php'],
-			'unit tests'       => ['UnitTest'],
-			'PHPUnit config'   => ['phpunit.xml'],
-			'agent notes'      => ['AGENTS.md'],
-			'project memory'   => ['.claude'],
+			'integration tests'       => ['IntegrationTest'],
+			'integration PHPUnit cfg' => ['phpunit.integration.xml'],
+			'integration env sample'  => ['.env.test.dist'],
+			'testing instructions'    => ['TESTING.md'],
+			'Phing build file'        => ['build.xml'],
+			'Rector config'           => ['rector.php'],
+			'unit tests'              => ['UnitTest'],
+			'PHPUnit config'          => ['phpunit.xml'],
+			'agent notes'             => ['AGENTS.md'],
+			'project memory'          => ['.claude'],
 		];
 	}
 

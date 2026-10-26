@@ -6,6 +6,12 @@
 /UnitTest    export-ignore
 /phpunit.xml export-ignore
 
+# Integration tests are for development only
+/IntegrationTest export-ignore
+/phpunit.integration.xml export-ignore
+/build.xml export-ignore
+/TESTING.md export-ignore
+/.env.test.dist export-ignore
+
 # Development tools
-/minitest    export-ignore
 /rector.php  export-ignore

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Integration tests: they talk to real S3 or S3-compatible services. Do not call phpunit with this file directly,
+  use `composer test:integration` which runs it once per environment defined in .env.test.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+         bootstrap="IntegrationTest/bootstrap.php"
+         cacheDirectory=".phpunit.cache/integration"
+         colors="true"
+         failOnWarning="true"
+         failOnRisky="true">
+    <testsuites>
+        <testsuite name="integration">
+            <directory>IntegrationTest/Tests</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+</phpunit>
