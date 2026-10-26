@@ -9,7 +9,8 @@
          cacheDirectory=".phpunit.cache/integration"
          colors="true"
          failOnWarning="true"
-         failOnRisky="true">
+	 failOnRisky="true"
+>
     <testsuites>
         <testsuite name="integration">
             <directory>IntegrationTest/Tests</directory>

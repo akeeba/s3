@@ -15,6 +15,9 @@
  *   --list                 List the discovered environments and exit
  *   --env=A,B              Only run these environments (prefixes in .env.test, case insensitive)
  *   --quick                Skip the slow tests (big files, multipart uploads, listing thousands of files)
+ *   --no-big-files         Skip only the big file tests
+ *   --no-multipart         Skip only the multipart upload tests
+ *   --no-2100              Skip only the 2100-file listing tests
  *   --docker               Always start the MinIO container first and stop it afterwards. Without it the
  *                          container is started (and stopped) automatically only if a selected environment has
  *                          <PREFIX>_CONTAINER=true and the container is not already running
@@ -29,6 +32,7 @@ require_once __DIR__ . '/Environment.php';
 
 $root       = dirname(__DIR__);
 $only       = [];
+$exclude    = [];
 $list       = $quick = $docker = $skipIfUnconfigured = false;
 $phpunitArg = [];
 $argv       = $_SERVER['argv'];
@@ -52,6 +56,18 @@ while (($arg = array_shift($argv)) !== null)
 
 		case $arg === '--quick':
 			$quick = true;
+			break;
+
+		case $arg === '--no-big-files':
+			$exclude[] = 'big-files';
+			break;
+
+		case $arg === '--no-multipart':
+			$exclude[] = 'multipart';
+			break;
+
+		case $arg === '--no-2100':
+			$exclude[] = 'listing-2100';
 			break;
 
 		case $arg === '--docker':
@@ -121,6 +137,14 @@ foreach ($environments as $name)
 $wasRunning = trim((string) shell_exec($compose . ' ps -q --status running 2>/dev/null')) !== '';
 $docker     = ($docker || $needsContainer) && !$wasRunning;
 
+// One --exclude-group per group: comma-separated values are deprecated in PHPUnit 11
+$excludeArgs = [];
+
+foreach (array_unique($exclude) as $group)
+{
+	array_push($excludeArgs, '--exclude-group', $group);
+}
+
 $results = [];
 
 try
@@ -152,6 +176,7 @@ try
 		$command = array_merge(
 			[$phpunit, '--configuration', $root . '/phpunit.integration.xml'],
 			$quick ? ['--exclude-group', 'slow'] : [],
+			$excludeArgs,
 			$phpunitArg
 		);
 

@@ -15,6 +15,7 @@ use PHPUnit\Framework\Attributes\Group;
  * Same as BigFilesTest, but with multipart (chunked) uploads, also checking the number of chunks
  */
 #[Group('slow')]
+#[Group('multipart')]
 class MultipartTest extends BigFilesTest
 {
 	protected $multipart = true;

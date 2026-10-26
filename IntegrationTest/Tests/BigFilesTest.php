@@ -18,6 +18,7 @@ use PHPUnit\Framework\Attributes\Group;
  * Upload, download and delete big files (over 1MB), without multipart uploads. Uses string or file sources.
  */
 #[Group('slow')]
+#[Group('big-files')]
 class BigFilesTest extends IntegrationTestCase
 {
 	/** Use multipart (chunked) uploads? */

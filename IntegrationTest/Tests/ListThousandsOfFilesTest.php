@@ -20,6 +20,7 @@ use PHPUnit\Framework\Attributes\Group;
  * Creating the 2100 files takes a while; set <ENVIRONMENT>_CREATE_2100_FILES=false to skip these tests.
  */
 #[Group('slow')]
+#[Group('listing-2100')]
 class ListThousandsOfFilesTest extends IntegrationTestCase
 {
 	private const PATH_PREFIX = 'massive/';

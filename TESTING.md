@@ -17,6 +17,7 @@ library against **real** S3 and S3-compatible services. It replaces the old `min
 | `composer test:integration` | Runs the whole suite once against **each** environment in `.env.test` |
 | `composer test:integration -- --env=C2,WASABI` | Only these environments |
 | `composer test:integration -- --quick` | Skips the slow tests (big files, multipart, 2100-file listings) |
+| `composer test:integration -- --no-big-files` | Skips only the big file tests (likewise `--no-multipart`, `--no-2100`) |
 | `composer test:integration -- --filter SignedURLs` | Anything unknown is handed to PHPUnit |
 | `composer test:integration -- --list` | Lists the discovered environments |
 | `composer test:minio` | Starts MinIO in Docker, runs the suite against `MINIO`, removes the container |

@@ -68,7 +68,7 @@
 	"scripts-descriptions": {
 		"test": "Run the unit tests, then the integration tests against every environment in .env.test (if any)",
 		"test:unit": "Run the unit tests. No network, no S3 account",
-		"test:integration": "Run the integration suite against each environment in .env.test. Options: --env=A,B --quick --list -- <phpunit args>",
+		"test:integration": "Run the integration suite against each environment in .env.test. Options: --env=A,B --quick --no-big-files --no-multipart --no-2100 --list -- <phpunit args>",
 		"test:minio": "Start MinIO in Docker, run the integration suite against it, stop it",
 		"minio:up": "Start the MinIO container with the test bucket",
 		"minio:down": "Stop the MinIO container and delete its data"
