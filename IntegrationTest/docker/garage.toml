@@ -1,0 +1,20 @@
+# Configuration of the throwaway Garage node (https://garagehq.deuxfleurs.fr) the GARAGE environment of .env.test
+# talks to. Mounted read-only at /etc/garage.toml by compose.yml.
+#
+# A single node whose data lives in the container. The RPC secret is public on purpose: the ports are never
+# published to anything but 127.0.0.1, and the node is thrown away with `composer garage:down`.
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "sqlite"
+# Do not fsync: the data is disposable and this makes the tests faster.
+metadata_fsync = false
+data_fsync = false
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_secret = "0000000000000000000000000000000000000000000000000000000000a5e5e5"
+
+[s3_api]
+# The region v4 signatures must name, like Amazon S3's.
+s3_region = "us-east-1"
+api_bind_addr = "[::]:3900"

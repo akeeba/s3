@@ -251,7 +251,7 @@ class V4 extends Signature
 		 * IMPORTANT: this stripping is only correct when the bucket is NOT part of the URL path we will actually request,
 		 * i.e. when the bucket lives in the hostname (virtual-hosting style). When getPreSignedBucketInURL() is true we
 		 * deliberately keep the bucket as the first path component of the pre-signed URL (path-style access — required by
-		 * S3-compatible services reached through a host:port endpoint with no per-bucket DNS, such as a local MinIO). In
+		 * S3-compatible services reached through a host:port endpoint with no per-bucket DNS, such as a local test server). In
 		 * that case the bucket IS in the requested path, so the canonical URI must keep it too; stripping it here would
 		 * sign `/object` while requesting `/bucket/object`, which strict services reject with SignatureDoesNotMatch.
 		 */

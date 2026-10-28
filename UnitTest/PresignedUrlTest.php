@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  * Where the bucket goes in a pre-signed URL.
  *
  * Path-style access is the caller's choice (setUseLegacyPathStyle()): a pre-signed URL must follow it, or the
- * URL names a host such as bucket.minio:9000 which S3-compatible servers without per-bucket DNS never answer.
+ * URL names a host such as bucket.localhost:3900 which an S3-compatible service with no per-bucket DNS never answers.
  *
  * On Amazon S3 proper, a URL with the bucket in the path must name the bucket's regional endpoint. The global
  * s3.amazonaws.com only serves us-east-1 buckets that way and answers 301 PermanentRedirect for any other region.

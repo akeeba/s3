@@ -1,36 +1,24 @@
-# MinIO, an S3-compatible server, for the MINIO environments of .env.test
+# Garage, an S3-compatible server, for the GARAGE environment of .env.test
 #
-#   composer minio:up      start it and create the `test` bucket
-#   composer minio:down    stop it and throw the data away
+#   composer garage:up      start it, lay out its storage, import the access key, create the `test` bucket
+#   composer garage:down    stop it and throw the data away
 #
-# The image is pinned. Set MINIO_IMAGE (and MINIO_MC_IMAGE for the bucket-creating client) to use another one.
+# The image is pinned. Set GARAGE_IMAGE to use another one. The S3 API is published on 127.0.0.1:3900; set
+# GARAGE_PORT to use another host port (and change GARAGE_ENDPOINT in .env.test to match).
+#
+# Garage is not usable straight after it starts and its image has no shell, so provision.sh does the rest through
+# `docker compose exec`. It only supports v4 signatures.
 name: akeeba-s3-tests
 
 services:
-  minio:
-    image: ${MINIO_IMAGE:-quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z}
-    command: server /data
+  garage:
+    image: ${GARAGE_IMAGE:-dxflrs/garage:v2.5.0}
     ports:
-      - "127.0.0.1:9000:9000"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      - "127.0.0.1:${GARAGE_PORT:-3900}:3900"
+    volumes:
+      - ./garage.toml:/etc/garage.toml:ro
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "/garage", "status"]
       interval: 2s
       timeout: 5s
       retries: 30
-
-  # One-shot: creates the bucket the tests use (MINIO_BUCKET), then exits. It has a profile so that `up --wait` does
-  # not start it (waiting on a container which exits fails); run it with
-  # `docker compose --profile init run --rm create-bucket`.
-  create-bucket:
-    profiles: [init]
-    image: ${MINIO_MC_IMAGE:-quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z}
-    depends_on:
-      minio:
-        condition: service_healthy
-    restart: "no"
-    entrypoint: >
-      /bin/sh -c "mc alias set local http://minio:9000 minioadmin minioadmin &&
-      mc mb --ignore-existing local/test"

@@ -18,7 +18,7 @@
  *   --no-big-files         Skip only the big file tests
  *   --no-multipart         Skip only the multipart upload tests
  *   --no-2100              Skip only the 2100-file listing tests
- *   --docker               Always start the MinIO container first and stop it afterwards. Without it the
+ *   --docker               Always start the Garage container first and stop it afterwards. Without it the
  *                          container is started (and stopped) automatically only if a selected environment has
  *                          <PREFIX>_CONTAINER=true and the container is not already running
  *   --skip-if-unconfigured Exit successfully when there is no .env.test (used by `composer test`)
@@ -118,7 +118,8 @@ $phpunit = is_file($root . '/vendor/bin/phpunit') ? $root . '/vendor/bin/phpunit
 $compose = 'docker compose -f ' . escapeshellarg(__DIR__ . '/docker/compose.yml');
 
 // docker compose reads these from the process environment, so pass on the ones set in .env.test
-foreach (['MINIO_IMAGE', 'MINIO_MC_IMAGE'] as $key)
+// (and the GARAGE environment's credentials, which provision.sh imports into the container)
+foreach (['GARAGE_IMAGE', 'GARAGE_PORT', 'GARAGE_ACCESS_KEY', 'GARAGE_SECRET_KEY', 'GARAGE_BUCKET'] as $key)
 {
 	if (Environment::get($key) !== null)
 	{
@@ -151,18 +152,18 @@ try
 {
 	if ($docker)
 	{
-		echo "▶ Starting MinIO…\n";
-		passthru($compose . ' up -d --wait minio', $code);
+		echo "▶ Starting Garage…\n";
+		passthru($compose . ' up -d --wait garage', $code);
 
 		if ($code === 0)
 		{
-			passthru($compose . ' --profile init run --rm create-bucket', $code);
+			passthru('bash ' . escapeshellarg(__DIR__ . '/docker/provision.sh'), $code);
 		}
 
 		if ($code !== 0)
 		{
-			fwrite(STDERR, "Could not start MinIO.\n");
-			$results['MinIO startup'] = $code;
+			fwrite(STDERR, "Could not start Garage.\n");
+			$results['Garage startup'] = $code;
 
 			// The finally block below stops it
 			$environments = [];
@@ -192,7 +193,7 @@ finally
 {
 	if ($docker)
 	{
-		echo PHP_EOL . "▶ Stopping MinIO…\n";
+		echo PHP_EOL . "▶ Stopping Garage…\n";
 		passthru($compose . ' down -v --remove-orphans');
 	}
 }
