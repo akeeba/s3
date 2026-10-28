@@ -6,7 +6,7 @@ callers, relative to the common projects root:
 - **`akeeba/engine2`** (Akeeba Backup, `engine/Postproc/Amazons3.php`): builds the configuration, then for a custom
   endpoint calls `setEndpoint()`, `setSignatureMethod()` and `setRegion()` again, in that order. It also sets
   `setPreSignedBucketInURL()` from its own option.
-- **`j4-akeeba/s3filesystem`** (plg_filesystem_s3): `setEndpoint()` then `setSignatureMethod()`, region from the
+- **`j5-akeeba/s3filesystem`** (plg_filesystem_s3): `setEndpoint()` then `setSignatureMethod()`, region from the
   constructor; `setDebug()` from Joomla's Site Debug. It has drift tests that record the real cURL options and
   headers this library produces.
 - **`akeeba/kickstart`** bundles its own, separate copy of the S3 classes (`source/s3/`); changes here do not reach it.
